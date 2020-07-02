@@ -2,7 +2,6 @@ package com.nick.wood.game_engine.examples;
 
 import com.nick.wood.event_bus.busses.GameBus;
 import com.nick.wood.event_bus.interfaces.Bus;
-import com.nick.wood.game_engine.model.GameObjectManager;
 import com.nick.wood.game_engine.model.game_objects.GameObject;
 import com.nick.wood.game_engine.model.input.ControllerState;
 import com.nick.wood.game_engine.model.input.DirectTransformController;
@@ -27,7 +26,7 @@ public class GameLoop {
 	private final DirectTransformController directTransformController;
 	private final HashMap<String, ArrayList<GameObject>> layeredGameObjectsMap;
 	private final HashMap<String, RenderGraph> renderGraphLayerMap;
-	private final GameObjectManager gameObjectManager;
+	private final RenderingConversion renderingConversion;
 	private final GameBus gameBus;
 	private final ControllerState controllerState;
 	private final ExecutorService executorService;
@@ -52,7 +51,7 @@ public class GameLoop {
 			renderGraphLayerMap.put(layerName, new RenderGraph());
 		}
 
-		this.gameObjectManager = new GameObjectManager();
+		this.renderingConversion = new RenderingConversion();
 
 		this.controllerState = new ControllerState();
 
@@ -95,7 +94,7 @@ public class GameLoop {
 				renderGraph.empty();
 
 				for (GameObject gameObject : stringArrayListEntry.getValue()) {
-					gameObjectManager.createRenderLists(renderGraph,
+					renderingConversion.createRenderLists(renderGraph,
 							gameObject,
 							Matrix4f.Identity);
 				}
