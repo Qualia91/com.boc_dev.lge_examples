@@ -22,12 +22,6 @@
             <version>1.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>com.nick.wood.game_engine.io</groupId>-->
-<!--            <artifactId>com.nick.wood.game_engine.io</artifactId>-->
-<!--            <version>1.0-SNAPSHOT</version>-->
-<!--            <scope>compile</scope>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>com.nick.wood.maths</groupId>
             <artifactId>com.nick.wood.maths</artifactId>
@@ -67,6 +61,12 @@
         <dependency>
             <groupId>com.nick.wood.game_engine.io</groupId>
             <artifactId>com.nick.wood.game_engine.io</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.nick.wood.game_engine.core</groupId>
+            <artifactId>com.nick.wood.game_engine.core</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>

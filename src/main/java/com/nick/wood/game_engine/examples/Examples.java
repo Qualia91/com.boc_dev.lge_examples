@@ -1,14 +1,14 @@
 package com.nick.wood.game_engine.examples;
 
-import com.nick.wood.event_bus.DebugSubscribable;
 import com.nick.wood.event_bus.PickingSubscribable;
-import com.nick.wood.game_engine.examples.utils.ChunkLoader;
+import com.nick.wood.game_engine.core.ChunkLoader;
+import com.nick.wood.game_engine.core.GameLoop;
 import com.nick.wood.game_engine.model.game_objects.*;
 import com.nick.wood.game_engine.model.input.DirectTransformController;
 import com.nick.wood.game_engine.model.object_builders.CameraBuilder;
 import com.nick.wood.game_engine.model.object_builders.GeometryBuilder;
 import com.nick.wood.game_engine.model.object_builders.LightingBuilder;
-import com.nick.wood.game_engine.model.types.CameraType;
+import com.nick.wood.game_engine.model.types.CameraObjectType;
 import com.nick.wood.game_engine.model.types.GeometryType;
 import com.nick.wood.game_engine.model.types.LightingType;
 import com.nick.wood.game_engine.model.types.SkyboxType;
@@ -39,7 +39,8 @@ public class Examples {
 
 	public static void main(String[] args) {
 		Examples examples = new Examples();
-		examples.picking();
+		//examples.basicExample();
+		examples.infiniteHeightMapTerrain();
 	}
 
 	public void basicExample() {
@@ -248,7 +249,7 @@ public class Examples {
 		ArrayList<Scene> sceneLayers = new ArrayList<>();
 		sceneLayers.add(mainScene);
 
-		ChunkLoader chunkLoader = new ChunkLoader(gameObjects, 5, 2);
+		ChunkLoader chunkLoader = new ChunkLoader(gameObjects, 5, 2, 10);
 
 		GameLoop gameLoop = new GameLoop(sceneLayers,
 				wip.build(),
@@ -307,7 +308,7 @@ public class Examples {
 
 
 		CameraBuilder cameraBuilder = new CameraBuilder("fboCamera")
-				.setCameraType(CameraType.FBO)
+				.setCameraObjectType(CameraObjectType.FBO)
 				.setWidth(1000)
 				.setHeight(1000)
 				.setFov(1.22173f)

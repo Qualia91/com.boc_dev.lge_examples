@@ -1,6 +1,7 @@
 package com.nick.wood.game_engine.examples;
 
 import com.nick.wood.event_bus.DebugSubscribable;
+import com.nick.wood.game_engine.core.GameLoop;
 import com.nick.wood.game_engine.model.object_builders.CameraBuilder;
 import com.nick.wood.game_engine.model.object_builders.GeometryBuilder;
 import com.nick.wood.game_engine.model.object_builders.LightingBuilder;
@@ -17,16 +18,7 @@ import com.nick.wood.game_engine.model.game_objects.*;
 import com.nick.wood.game_engine.model.input.DirectTransformController;
 import com.nick.wood.graphics_library.Shader;
 import com.nick.wood.graphics_library.WindowInitialisationParametersBuilder;
-import com.nick.wood.graphics_library.lighting.DirectionalLight;
 import com.nick.wood.graphics_library.lighting.Fog;
-import com.nick.wood.graphics_library.lighting.PointLight;
-import com.nick.wood.graphics_library.lighting.SpotLight;
-import com.nick.wood.graphics_library.objects.Camera;
-import com.nick.wood.graphics_library.objects.CameraType;
-import com.nick.wood.graphics_library.objects.mesh_objects.MeshBuilder;
-import com.nick.wood.graphics_library.objects.mesh_objects.MeshObject;
-import com.nick.wood.graphics_library.objects.mesh_objects.MeshType;
-import com.nick.wood.graphics_library.objects.mesh_objects.TextItem;
 import com.nick.wood.graphics_library.objects.render_scene.Scene;
 import com.nick.wood.maths.objects.QuaternionF;
 import com.nick.wood.maths.objects.srt.Transform;
@@ -264,7 +256,7 @@ public class IOExample {
 	static private CameraObject findMainCamera(GameObject gameObject) {
 		if (gameObject instanceof CameraObject) {
 			CameraObject cameraObject = (CameraObject) gameObject;
-			if (cameraObject.getCameraBuilder().getCameraType().toString().equals("PRIMARY")) {
+			if (cameraObject.getCameraBuilder().getCameraObjectType().toString().equals("PRIMARY")) {
 				return cameraObject;
 			}
 		} else {
@@ -281,7 +273,7 @@ public class IOExample {
 	static private TransformObject findMainCameraTransform(GameObject gameObject, GameObject parent) {
 		if (gameObject instanceof CameraObject) {
 			CameraObject cameraObject = (CameraObject) gameObject;
-			if (cameraObject.getCameraBuilder().getCameraType().toString().equals("PRIMARY")) {
+			if (cameraObject.getCameraBuilder().getCameraObjectType().toString().equals("PRIMARY")) {
 				return (TransformObject) parent;
 			}
 		} else {
