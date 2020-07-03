@@ -1,14 +1,10 @@
 package com.nick.wood.game_engine.examples.utils;
 
-import com.nick.wood.game_engine.model.game_objects.GameObject;
-import com.nick.wood.game_engine.model.game_objects.GroupObject;
-import com.nick.wood.game_engine.model.game_objects.TerrainObject;
-import com.nick.wood.graphics_library.objects.mesh_objects.*;
+import com.nick.wood.game_engine.model.game_objects.*;
 import com.nick.wood.maths.noise.Perlin2Df;
 import com.nick.wood.maths.objects.srt.Transform;
 import com.nick.wood.maths.objects.srt.TransformBuilder;
 import com.nick.wood.maths.objects.vector.Vec3f;
-import com.nick.wood.game_engine.model.game_objects.TransformObject;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -28,7 +24,7 @@ public class ChunkLoader {
 	private final int loadingClippingDistance = 10;
 	private final int loadingClippingDistance2 = 300;
 	private final int visualClippingDistance2 = 200;
-	private final ArrayList<TerrainTextureObject> terrainTextureObjects;
+	private final ArrayList<TerrainTextureGameObject> terrainTextureGameObjects;
 
 	public ChunkLoader(ArrayList<GameObject> gameObjects, int octaves, int lacunarity) {
 		perlin2Ds = new Perlin2Df[octaves];
@@ -42,23 +38,23 @@ public class ChunkLoader {
 		gameObjects.add(groupObject);
 
 
-		this.terrainTextureObjects = new ArrayList<>();
+		this.terrainTextureGameObjects = new ArrayList<>();
 
-		terrainTextureObjects.add(new TerrainTextureObject(
+		terrainTextureGameObjects.add(new TerrainTextureGameObject(
 				0,
 				500,
 				"/textures/sand.jpg",
 				"/normalMaps/sandNormalMap.jpg"
 		));
 
-		terrainTextureObjects.add(new TerrainTextureObject(
+		terrainTextureGameObjects.add(new TerrainTextureGameObject(
 				500,
 				2500,
 				"/textures/terrain2.jpg",
 				"/normalMaps/grassNormal.jpg"
 		));
 
-		terrainTextureObjects.add(new TerrainTextureObject(
+		terrainTextureGameObjects.add(new TerrainTextureGameObject(
 				7000,
 				1000,
 				"/textures/snow.jpg",
@@ -142,8 +138,9 @@ public class ChunkLoader {
 
 		TerrainObject terrainObject = new TerrainObject(
 				transformObject,
+				chunkIndex.toString(),
 				grid,
-				terrainTextureObjects,
+				terrainTextureGameObjects,
 				cellSpace
 		);
 

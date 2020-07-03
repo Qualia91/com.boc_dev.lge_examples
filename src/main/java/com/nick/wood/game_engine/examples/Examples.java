@@ -1,22 +1,20 @@
 package com.nick.wood.game_engine.examples;
 
-import com.nick.wood.event_bus.DebugSubscribable;
+import com.nick.wood.game_engine.examples.utils.ChunkLoader;
 import com.nick.wood.game_engine.model.game_objects.*;
 import com.nick.wood.game_engine.model.input.DirectTransformController;
-import com.nick.wood.game_engine.examples.utils.ChunkLoader;
+import com.nick.wood.game_engine.model.object_builders.CameraBuilder;
+import com.nick.wood.game_engine.model.object_builders.GeometryBuilder;
+import com.nick.wood.game_engine.model.object_builders.LightingBuilder;
+import com.nick.wood.game_engine.model.types.CameraType;
+import com.nick.wood.game_engine.model.types.GeometryType;
+import com.nick.wood.game_engine.model.types.LightingType;
+import com.nick.wood.game_engine.model.types.SkyboxType;
 import com.nick.wood.game_engine.model.utils.Creation;
 import com.nick.wood.graphics_library.Shader;
 import com.nick.wood.graphics_library.WindowInitialisationParametersBuilder;
-import com.nick.wood.graphics_library.lighting.DirectionalLight;
 import com.nick.wood.graphics_library.lighting.Fog;
-import com.nick.wood.graphics_library.lighting.PointLight;
-import com.nick.wood.graphics_library.lighting.SpotLight;
 import com.nick.wood.graphics_library.objects.Camera;
-import com.nick.wood.graphics_library.objects.CameraType;
-import com.nick.wood.graphics_library.objects.mesh_objects.MeshBuilder;
-import com.nick.wood.graphics_library.objects.mesh_objects.MeshObject;
-import com.nick.wood.graphics_library.objects.mesh_objects.MeshType;
-import com.nick.wood.graphics_library.objects.mesh_objects.TextItem;
 import com.nick.wood.graphics_library.objects.render_scene.Scene;
 import com.nick.wood.maths.objects.QuaternionF;
 import com.nick.wood.maths.objects.srt.Transform;
@@ -39,7 +37,7 @@ public class Examples {
 
 	public static void main(String[] args) {
 		Examples examples = new Examples();
-		examples.basicExample();
+		examples.renderingToFBOs();
 	}
 
 	public void basicExample() {
@@ -60,53 +58,55 @@ public class Examples {
 
 		TransformObject textTransformObject = new TransformObject(rootGameObject, textTransform);
 
-		TextItem textItem = (TextItem) new MeshBuilder()
-				.setMeshType(MeshType.TEXT)
-				.build();
+		GeometryBuilder textItem = new GeometryBuilder("Text")
+				.setGeometryType(GeometryType.TEXT);
+		
 		for (int i = 0; i < 1_000; i++) {
 
-			MeshGameObject textMeshGameObject = new MeshGameObject(textTransformObject, textItem);
+			GeometryGameObject textGeometryGameObject = new GeometryGameObject(textTransformObject, textItem);
 
 		}
 
-		MeshObject mesh = new MeshBuilder()
-				.setMeshType(MeshType.CUBOID)
+		GeometryBuilder mesh = new GeometryBuilder("BrickCuboid")
+				.setGeometryType(GeometryType.CUBOID)
 				.setTexture("/textures/brickwall.jpg")
 				.setNormalTexture("/normalMaps/brickwall_normal.jpg")
 				.setTransform(transformBuilder
-						.reset().build())
-				.build();
+						.reset().build());
+				
 
-		MeshObject meshGroupLight = new MeshBuilder()
-				.setMeshType(MeshType.MODEL)
+		GeometryBuilder meshGroupLight = new GeometryBuilder("MarsModel")
+				.setGeometryType(GeometryType.MODEL)
 				.setInvertedNormals(false)
 				.setTexture("/textures/mars.jpg")
 				.setTransform(transformBuilder
-						.setScale(Vec3f.ONE).build())
-				.build();
+						.setScale(Vec3f.ONE).build());
+				
 
-		MeshGameObject meshGameObject = new MeshGameObject(wholeSceneTransform, mesh);
+		GeometryGameObject geometryGameObject = new GeometryGameObject(wholeSceneTransform, mesh);
 
-		PointLight pointLight = new PointLight(
-				new Vec3f(0.0f, 1.0f, 0.0f),
-				10f);
-		DirectionalLight directionalLight = new DirectionalLight(
-				new Vec3f(1.0f, 1.0f, 1.0f),
-				new Vec3f(0.0f, 0.0f, -1.0f),
-				1f);
-		SpotLight spotLight = new SpotLight(
-				new PointLight(
-						new Vec3f(1.0f, 0.0f, 0.0f),
-						100f),
-				Vec3f.Y,
-				0.1f
-		);
+		LightingBuilder pointLight = new LightingBuilder("PointLight")
+				.setLightingType(LightingType.POINT)
+				.setColour(new Vec3f(0.0f, 1.0f, 0.0f))
+				.setIntensity(10f);
 
+		LightingBuilder directionalLight = new LightingBuilder("DirectionalLight")
+				.setLightingType(LightingType.DIRECTIONAL)
+				.setColour(new Vec3f(1.0f, 1.0f, 1.0f))
+				.setDirection(new Vec3f(0.0f, 0.0f, -1.0f))
+				.setIntensity(1);
+
+		LightingBuilder spotLight = new LightingBuilder("SpotLight")
+				.setLightingType(LightingType.SPOT)
+				.setColour(new Vec3f(1.0f, 0.0f, 0.0f))
+				.setIntensity(100f)
+				.setDirection(Vec3f.Y)
+				.setConeAngle(0.1f);
 
 		Transform build = new TransformBuilder()
 				.setScale(new Vec3f(1000, 1000, 1000))
-				.setRotation(QuaternionF.RotationY(Math.PI))
-				.build();
+				.setRotation(QuaternionF.RotationY(Math.PI)).build();
+				
 
 		SkyBoxObject skyBoxObject = new SkyBoxObject(rootGameObject, "/textures/altimeterSphere.png", SkyboxType.SPHERE, build);
 
@@ -115,14 +115,19 @@ public class Examples {
 		Creation.CreateLight(spotLight, wholeSceneTransform, new Vec3f(0.0f, -10.0f, 0.0f), Vec3f.ONE.scale(0.5f), QuaternionF.Identity, meshGroupLight);
 		Creation.CreateLight(directionalLight, wholeSceneTransform, new Vec3f(0.0f, -10.0f, 0), Vec3f.ONE.scale(0.5f), QuaternionF.Identity, meshGroupLight);
 
-		Camera camera = new Camera("camera", 1.22173f, 1, 100000);
+		CameraBuilder cameraBuilder = new CameraBuilder("Camera")
+				.setFov(1.22173f)
+				.setNear(1)
+				.setFar(100000);
+
 		Transform cameraTransform = transformBuilder
 				.setPosition(new Vec3f(-10, 0, 0))
 				.setScale(Vec3f.ONE)
 				.setRotation(cameraRotation)
 				.build();
+				
 		TransformObject cameraTransformGameObject = new TransformObject(wholeSceneTransform, cameraTransform);
-		CameraObject cameraObject = new CameraObject(cameraTransformGameObject, camera);
+		CameraObject cameraObject = new CameraObject(cameraTransformGameObject, cameraBuilder);
 		DirectTransformController directTransformController = new DirectTransformController(cameraTransformGameObject, true, true, 0.01f, 1);
 		gameObjects.add(rootGameObject);
 
@@ -165,7 +170,7 @@ public class Examples {
 		}
 	}
 
-/*
+
 	void infiniteHeightMapTerrain() {
 
 		ArrayList<GameObject> gameObjects = new ArrayList<>();
@@ -174,16 +179,14 @@ public class Examples {
 
 		int size = 1000;
 
-		MeshObject meshGroupLight = new MeshBuilder()
-				.setInvertedNormals(true)
-				.build();
+		LightingBuilder directionalLight = new LightingBuilder("DirectionalLight")
+				.setLightingType(LightingType.DIRECTIONAL)
+				.setColour(new Vec3f(1.0f, 1.0f, 1.0f))
+				.setDirection(new Vec3f(0.0f, 1.0f, -1.0f))
+				.setIntensity(1f);
 
-		DirectionalLight sun = new DirectionalLight(
-				new Vec3f(0.9f, 1.0f, 1.0f),
-				Vec3f.Y.add(Vec3f.Z.neg()).normalise(),
-				0.5f);
 
-		LightObject lightObject = new LightObject(rootGameObject, sun);
+		LightObject lightObject = new LightObject(rootGameObject, directionalLight);
 
 
 		Transform cameraTransform = new TransformBuilder()
@@ -191,25 +194,31 @@ public class Examples {
 				.setScale(Vec3f.ONE)
 				.setRotation(cameraRotation)
 				.build();
+				
 		TransformObject cameraTransformObj = new TransformObject(rootGameObject, cameraTransform);
-		Camera camera = new Camera("camera", 1.22173f, 500, 10_000_000);
-		CameraObject cameraObject = new CameraObject(cameraTransformObj, camera);
+
+		CameraBuilder cameraBuilder = new CameraBuilder("Camera")
+				.setFov(1.22173f)
+				.setNear(500)
+				.setFar(10_000_000);
+		CameraObject cameraObject = new CameraObject(cameraTransformObj, cameraBuilder);
 		DirectTransformController directTransformController = new DirectTransformController(cameraTransformObj, true, true, 0.01f, 1000);
 
 		Transform transform = new TransformBuilder()
 				.setScale(5_000_000)
 				.setRotation(QuaternionF.RotationY(Math.PI))
 				.build();
+				
 
 		SkyBoxObject skyBoxObject = new SkyBoxObject(rootGameObject, "/textures/skyBox.jpg", SkyboxType.MODEL, transform);
 		gameObjects.add(rootGameObject);
 
 		Transform waterTransform = new TransformBuilder()
 				.reset()
-				.setPosition(new Vec3f(0, 0, 0))
-				.build();
+				.setPosition(new Vec3f(0, 0, 0)).build();
+				
 		TransformObject waterTransformObj = new TransformObject(rootGameObject, waterTransform);
-		WaterObject water = new WaterObject(waterTransformObj, "/textures/waterDuDvMap.jpg", "/normalMaps/waterNormalMap.jpg", size, 0, 1000);
+		WaterObject water = new WaterObject(waterTransformObj, "WATER_SQUARE", "/textures/waterDuDvMap.jpg", "/normalMaps/waterNormalMap.jpg", size, 0, 1000);
 
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
@@ -245,10 +254,16 @@ public class Examples {
 				directTransformController,
 				layeredGameObjectsMap);
 
+		gameLoop.getExecutorService().submit(() -> {
+			while (true) {
+				Thread.sleep(5000);
+				waterTransform.setPosition(new Vec3f(cameraTransform.getPosition().getX() - (size * 1000.0f / 2.0f), cameraTransform.getPosition().getY() - (size * 1000.0f / 2.0f), 0));
+			}
+		});
+
 		try {
-			gameLoop.run(
-					() -> chunkLoader.loadChunk(cameraTransformObj.getTransform().getPosition()),
-					() -> waterTransform.setPosition(new Vec3f(cameraTransform.getPosition().getX() - (size * 1000.0f / 2.0f), cameraTransform.getPosition().getY() - (size * 1000.0f / 2.0f), 0)));
+			gameLoop.run(() ->
+					chunkLoader.loadChunk(cameraTransformObj.getTransform().getPosition()));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -272,29 +287,40 @@ public class Examples {
 
 		transformBuilder.reset();
 
-		MeshObject meshGroupLight = new MeshBuilder()
-				.setMeshType(MeshType.MODEL)
+		GeometryBuilder meshGroupLight = new GeometryBuilder("BASIC_MODEL")
+				.setGeometryType(GeometryType.MODEL)
 				.setInvertedNormals(false)
 				.setTransform(transformBuilder
-						.setScale(Vec3f.ONE).build())
-				.build();
+						.setScale(Vec3f.ONE).build());
 
-		DirectionalLight directionalLight = new DirectionalLight(
-				new Vec3f(1.0f, 1.0f, 1.0f),
-				new Vec3f(1.0f, 0.0f, 0.0f),
-				1f);
+
+
+		LightingBuilder directionalLight = new LightingBuilder("DirectionalLight")
+				.setLightingType(LightingType.DIRECTIONAL)
+				.setColour(new Vec3f(1.0f, 1.0f, 1.0f))
+				.setDirection(new Vec3f(1.0f, 0.0f, 0.0f))
+				.setIntensity(1f);
 
 		Creation.CreateAxis(wholeSceneTransform);
 		Creation.CreateLight(directionalLight, wholeSceneTransform, new Vec3f(0.0f, -10.0f, 0), Vec3f.ONE.scale(0.5f), QuaternionF.Identity, meshGroupLight);
 
-		Camera camera = new Camera("fboCamera", CameraType.FBO_CAMERA, 1000, 1000, 1.22173f, 1, 100000);
+
+		CameraBuilder cameraBuilder = new CameraBuilder("fboCamera")
+				.setCameraType(CameraType.FBO)
+				.setWidth(1000)
+				.setHeight(1000)
+				.setFov(1.22173f)
+				.setNear(1)
+				.setFar(100000);
+
 		Transform cameraTransform = transformBuilder
 				.setPosition(new Vec3f(-10, 0, 0))
 				.setScale(Vec3f.ONE)
 				.setRotation(cameraRotation)
 				.build();
+				
 		TransformObject cameraTransformGameObject = new TransformObject(wholeSceneTransform, cameraTransform);
-		CameraObject cameraObject = new CameraObject(cameraTransformGameObject, camera);
+		CameraObject cameraObject = new CameraObject(cameraTransformGameObject, cameraBuilder);
 		fboOneGameObjects.add(fboRootGameObject);
 
 
@@ -320,26 +346,34 @@ public class Examples {
 
 		Transform mainTransform = 	transformBuilder
 				.setPosition(Vec3f.X).build();
+
 		TransformObject wholeSceneTransform = new TransformObject(rootObject, mainTransform);
-		MeshObject circle = new MeshBuilder()
-				.setMeshType(MeshType.CIRCLE)
+
+		GeometryBuilder circle = new GeometryBuilder("FBO_RENDERING_PANEL")
+				.setGeometryType(GeometryType.CIRCLE)
 				.setTriangleNumber(100)
 				.setTransform(transformBuilder
 						.setScale(10).build())
-				.setTextureFboCameraName("fboCamera")
-				.build();
+				.setTextureFboCameraName("fboCamera");
 
-		MeshGameObject meshGameObject = new MeshGameObject(wholeSceneTransform, circle);
 
-		Camera camera = new Camera("CAMERA", 1.22173f, 1, 100000);
+		GeometryGameObject geometryGameObject = new GeometryGameObject(wholeSceneTransform, circle);
+
+
+		CameraBuilder cameraBuilder = new CameraBuilder("CAMERA")
+				.setFov(1.22173f)
+				.setNear(1)
+				.setFar(100000);
+
 		Transform cameraTransform = transformBuilder
 				.setPosition(new Vec3f(-10, 0, 0))
 				.setScale(Vec3f.ONE)
 				.setRotation(cameraRotation)
 				.build();
+				
 		TransformObject cameraTransformGameObject = new TransformObject(wholeSceneTransform, cameraTransform);
 		DirectTransformController directTransformController = new DirectTransformController(cameraTransformGameObject, true, true, 0.01f, 1);
-		CameraObject cameraObject = new CameraObject(cameraTransformGameObject, camera);
+		CameraObject cameraObject = new CameraObject(cameraTransformGameObject, cameraBuilder);
 
 
 		Vec3f ambientLight = new Vec3f(0.9f, 0.9f, 0.9f);
@@ -394,7 +428,7 @@ public class Examples {
 
 
 	}
-
+/*
 	public void stress() {
 
 		ArrayList<GameObject> gameObjects = new ArrayList<>();
@@ -403,16 +437,16 @@ public class Examples {
 
 		TransformBuilder transformBuilder = new TransformBuilder();
 
-		Transform transform = transformBuilder.build();
+		Transform transform = transformBuilder
 
-		MeshObject meshGroup = new MeshBuilder()
-				.setMeshType(MeshType.MODEL)
+		GeometryBuilder meshGroup = new GeometryBuilder()
+				.setGeometryType(GeometryType.MODEL)
 				.setModelFile("\\models\\dragon.obj")
 				.setTexture("/textures/white.png")
 				.setTransform(transformBuilder
 						.setPosition(Vec3f.ZERO)
 						.setRotation(QuaternionF.RotationX(90)).build())
-				.build();
+				
 
 
 		TransformObject wholeSceneTransform = new TransformObject(rootGameObject, transform);
@@ -423,9 +457,9 @@ public class Examples {
 
 		Creation.CreateAxis(wholeSceneTransform);
 
-		MeshObject meshGroupLight = new MeshBuilder()
+		GeometryBuilder meshGroupLight = new GeometryBuilder()
 				.setInvertedNormals(true)
-				.build();
+				
 
 		PointLight pointLight = new PointLight(
 				new Vec3f(0.0f, 1.0f, 0.0f),
@@ -450,7 +484,7 @@ public class Examples {
 				.setPosition(new Vec3f(-10, 0, 0))
 				.setScale(Vec3f.ONE)
 				.setRotation(cameraRotation)
-				.build();
+				
 		TransformObject cameraTransformObj = new TransformObject(rootGameObject, cameraTransform);
 		Camera camera = new Camera("camera", 1.22173f, 1, 100000);
 		CameraObject cameraObject = new CameraObject(cameraTransformObj, camera);
@@ -506,48 +540,48 @@ public class Examples {
 		TransformBuilder transformBuilder = new TransformBuilder();
 
 		Transform transform = transformBuilder
-				.setPosition(Vec3f.ZERO).build();
+				.setPosition(Vec3f.ZERO)
 
 		TransformObject wholeSceneTransform = new TransformObject(rootGameObject, transform);
 
 		Transform textTransform = transformBuilder
 				.setPosition(new Vec3f(0, 10, 0))
-				.setScale(Vec3f.ONE.scale(100)).build();
+				.setScale(Vec3f.ONE.scale(100))
 
 		transformBuilder.setPosition(Vec3f.ZERO);
 
 		TransformObject textTransformObject = new TransformObject(rootGameObject, textTransform);
 
-		TextItem textItem = (TextItem) new MeshBuilder()
-				.setMeshType(MeshType.TEXT)
-				.build();
+		TextItem textItem = (TextItem) new GeometryBuilder()
+				.setGeometryType(GeometryType.TEXT)
+				
 
 		MeshGameObject textMeshGameObject = new MeshGameObject(textTransformObject, textItem);
 
-		MeshObject meshGroupLight = new MeshBuilder()
-				.setMeshType(MeshType.MODEL)
+		GeometryBuilder meshGroupLight = new GeometryBuilder()
+				.setGeometryType(GeometryType.MODEL)
 				.setInvertedNormals(false)
 				.setTexture("/textures/mars.jpg")
 				.setTransform(transformBuilder
 						.setScale(Vec3f.ONE).build())
-				.build();
+				
 
-		MeshObject mesh = new MeshBuilder()
-				.setMeshType(MeshType.CUBOID)
+		GeometryBuilder mesh = new GeometryBuilder()
+				.setGeometryType(GeometryType.CUBOID)
 				.setTexture("/textures/brickwall.jpg")
 				.setNormalTexture("/normalMaps/brickwall_normal.jpg")
 				.setTransform(transformBuilder.build())
-				.build();
+				
 
-		MeshObject dragonMesh = new MeshBuilder()
-				.setMeshType(MeshType.MODEL)
+		GeometryBuilder dragonMesh = new GeometryBuilder()
+				.setGeometryType(GeometryType.MODEL)
 				.setModelFile("\\models\\dragon.obj")
 				.setTexture("/textures/white.png")
 				.setTransform(transformBuilder
 						.reset()
 						.setPosition(Vec3f.ZERO)
 						.setRotation(QuaternionF.RotationX(90)).build())
-				.build();
+				
 
 		MeshGameObject meshGameObject = new MeshGameObject(wholeSceneTransform, mesh);
 
@@ -577,7 +611,7 @@ public class Examples {
 				.setPosition(new Vec3f(-10, 0, 0))
 				.setScale(Vec3f.ONE)
 				.setRotation(cameraRotation)
-				.build();
+				
 		TransformObject cameraTransformGameObject = new TransformObject(wholeSceneTransform, cameraTransform);
 		DirectTransformController directTransformController = new DirectTransformController(cameraTransformGameObject, false, true, 0.01f, 1);
 		CameraObject cameraObject = new CameraObject(cameraTransformGameObject, camera);
@@ -652,20 +686,20 @@ public class Examples {
 
 		SkyBoxObject skyBoxObject = new SkyBoxObject(rootGameObject, "/textures/2k_neptune.jpg", SkyboxType.SPHERE, 1_000_000);
 
-		MeshObject terrain = new MeshBuilder()
-				.setMeshType(MeshType.TERRAIN)
+		GeometryBuilder terrain = new GeometryBuilder()
+				.setGeometryType(GeometryType.TERRAIN)
 				.setTerrainHeightMap(grid)
 				.setTexture("/textures/mars.jpg")
 				.setCellSpace(2.0)
-				.build();
+				
 
 		MeshGameObject meshGameObject = new MeshGameObject(rootGameObject, terrain);
 
 		WaterObject water = new WaterObject(rootGameObject, "/textures/waterDuDvMap.jpg", "/normalMaps/waterNormalMap.jpg", size, 0, 2);
 
-		MeshObject meshGroupLight = new MeshBuilder()
+		GeometryBuilder meshGroupLight = new GeometryBuilder()
 				.setInvertedNormals(true)
-				.build();
+				
 
 		DirectionalLight sun = new DirectionalLight(
 				new Vec3f(0.9f, 1.0f, 1.0f),
@@ -679,7 +713,7 @@ public class Examples {
 				.setPosition(new Vec3f(0, 0, 100))
 				.setScale(Vec3f.ONE)
 				.setRotation(cameraRotation)
-				.build();
+				
 		TransformObject cameraTransformGameObject = new TransformObject(rootGameObject, cameraTransform);
 		DirectTransformController directTransformController = new DirectTransformController(cameraTransformGameObject, true, true, 0.01f, 1);
 		CameraObject cameraObject = new CameraObject(cameraTransformGameObject, camera);
@@ -754,36 +788,36 @@ public class Examples {
 
 		TransformBuilder transformBuilder = new TransformBuilder();
 
-		MeshObject cubeSand = new MeshBuilder()
-				.setMeshType(MeshType.MODEL)
+		GeometryBuilder cubeSand = new GeometryBuilder()
+				.setGeometryType(GeometryType.MODEL)
 				.setModelFile("\\models\\cube.obj")
 				.setTexture("/textures/brickwall.jpg")
 				.setNormalTexture("/normalMaps/brickwall_normal.jpg")
 				//.setTransform(Matrix4f.Scale(new Vec3f(cubeSize, cubeSize, cubeSize)))
-				.build();
+				
 
-		MeshObject cubeGrass = new MeshBuilder()
-				.setMeshType(MeshType.MODEL)
+		GeometryBuilder cubeGrass = new GeometryBuilder()
+				.setGeometryType(GeometryType.MODEL)
 				.setModelFile("\\models\\cube.obj")
 				.setTexture("/textures/grass.png")
 				.setNormalTexture("/normalMaps/sandNormalMap.jpg")
 				//.setTransform(Matrix4f.Scale(new Vec3f(cubeSize, cubeSize, cubeSize)))
-				.build();
+				
 
-		MeshObject cubeSnow = new MeshBuilder()
-				.setMeshType(MeshType.MODEL)
+		GeometryBuilder cubeSnow = new GeometryBuilder()
+				.setGeometryType(GeometryType.MODEL)
 				.setModelFile("\\models\\cube.obj")
 				.setTexture("/textures/white.png")
 				.setTransform(transformBuilder.setScale(new Vec3f(cubeSize, cubeSize, cubeSize)).build())
-				.build();
+				
 
-		MeshObject cubeFire = new MeshBuilder()
-				.setMeshType(MeshType.MODEL)
+		GeometryBuilder cubeFire = new GeometryBuilder()
+				.setGeometryType(GeometryType.MODEL)
 				.setModelFile("\\models\\cube.obj")
 				.setTexture("/textures/8k_venus_surface.jpg")
 				.setNormalTexture("/normalMaps/sandNormalMap.jpg")
 				//.setTransform(Matrix4f.Scale(new Vec3f(cubeSize, cubeSize, cubeSize)))
-				.build();
+				
 
 		int segmentSize = 10;
 		int hillHeight = 20;
@@ -801,7 +835,7 @@ public class Examples {
 
 						Transform transform = transformBuilder
 								.setPosition(new Vec3f(i * cubeSize, j * cubeSize, k * cubeSize))
-								.setScale(Vec3f.ONE).build();
+								.setScale(Vec3f.ONE)
 
 						TransformObject transformObject = new TransformObject(rootGameObject, transform);
 
@@ -822,7 +856,7 @@ public class Examples {
 				for (int k = 0; k < point; k++) {
 
 					Transform transform = transformBuilder
-							.setPosition(new Vec3f(i * cubeSize, j * cubeSize, (k + size) * cubeSize)).build();
+							.setPosition(new Vec3f(i * cubeSize, j * cubeSize, (k + size) * cubeSize))
 
 					TransformObject transformObject = new TransformObject(rootGameObject, transform);
 
@@ -842,7 +876,7 @@ public class Examples {
 				.setPosition(new Vec3f(0, 0, 100))
 				.setScale(Vec3f.ONE)
 				.setRotation(cameraRotation)
-				.build();
+				
 		TransformObject cameraTransformGameObject = new TransformObject(rootGameObject, cameraTransform);
 		DirectTransformController directTransformController = new DirectTransformController(cameraTransformGameObject, true, true, 0.01f, 1);
 		CameraObject cameraObject = new CameraObject(cameraTransformGameObject, camera);
@@ -856,7 +890,7 @@ public class Examples {
 			for (int j = -space; j < width + space; j+= space) {
 				for (int k = -space; k < width + space; k+= space) {
 					Transform t = transformBuilder
-							.setPosition(new Vec3f(i, j, k)).build();
+							.setPosition(new Vec3f(i, j, k))
 
 					PointLight pointLight = new PointLight(
 							new Vec3f(0.5412f, 0.1f, 0.1f),
@@ -940,30 +974,30 @@ public class Examples {
 
 		TransformBuilder transformBuilder = new TransformBuilder();
 
-		MeshObject cubeSand = new MeshBuilder()
-				.setMeshType(MeshType.CUBOID)
+		GeometryBuilder cubeSand = new GeometryBuilder()
+				.setGeometryType(GeometryType.CUBOID)
 				.setTexture("/textures/sand_blocky.jpg")
 				.setTransform(transformBuilder
 						.setScale(new Vec3f(cubeSize, cubeSize, cubeSize)).build())
-				.build();
+				
 
-		MeshObject cubeGrass = new MeshBuilder()
-				.setMeshType(MeshType.CUBOID)
+		GeometryBuilder cubeGrass = new GeometryBuilder()
+				.setGeometryType(GeometryType.CUBOID)
 				.setTexture("/textures/grass.png")
 				.setTransform(transformBuilder.build())
-				.build();
+				
 
-		MeshObject cubeSnow = new MeshBuilder()
-				.setMeshType(MeshType.CUBOID)
+		GeometryBuilder cubeSnow = new GeometryBuilder()
+				.setGeometryType(GeometryType.CUBOID)
 				.setTexture("/textures/white.png")
 				.setTransform(transformBuilder.build())
-				.build();
+				
 
-		MeshObject cubeFire = new MeshBuilder()
-				.setMeshType(MeshType.CUBOID)
+		GeometryBuilder cubeFire = new GeometryBuilder()
+				.setGeometryType(GeometryType.CUBOID)
 				.setTexture("/textures/8k_venus_surface.jpg")
 				.setTransform(transformBuilder.build())
-				.build();
+				
 
 		int segmentSize = 10;
 		int hillHeight = 30;
@@ -988,7 +1022,7 @@ public class Examples {
 				.setPosition(new Vec3f(0, 0, 100))
 				.setScale(Vec3f.ONE)
 				.setRotation(cameraRotation)
-				.build();
+				
 		TransformObject cameraTransformGameObject = new TransformObject(rootGameObject, cameraTransform);
 		DirectTransformController directTransformController = new DirectTransformController(cameraTransformGameObject, true, true, 0.01f, 1);
 		CameraObject cameraObject = new CameraObject(cameraTransformGameObject, camera);
@@ -1097,10 +1131,10 @@ public class Examples {
 	                       int cubeSize,
 	                       ArrayList<GameObject> sceneGraphArrayList,
 	                       int hillHeight,
-	                       MeshObject cubeFire,
-	                       MeshObject cubeSand,
-	                       MeshObject cubeGrass,
-	                       MeshObject cubeSnow) {
+	                       GeometryBuilder cubeFire,
+	                       GeometryBuilder cubeSand,
+	                       GeometryBuilder cubeGrass,
+	                       GeometryBuilder cubeSnow) {
 
 
 		Vec3f bottomCornerToLoad = center.add(cullCube.scale(-0.5f));
@@ -1136,7 +1170,7 @@ public class Examples {
 									GroupObject rootObject = new GroupObject();
 
 									Transform transform = transformBuilder
-											.setPosition(new Vec3f(i * cubeSize, j * cubeSize, k * cubeSize)).build();
+											.setPosition(new Vec3f(i * cubeSize, j * cubeSize, k * cubeSize))
 
 									TransformObject transformObject = new TransformObject(rootObject, transform);
 
@@ -1167,38 +1201,38 @@ public class Examples {
 		TransformBuilder transformBuilder = new TransformBuilder();
 
 		Transform transform = transformBuilder
-				.setPosition(Vec3f.ZERO).build();
+				.setPosition(Vec3f.ZERO)
 
 		TransformObject wholeSceneTransform = new TransformObject(rootGameObject, transform);
 
 		Transform textTransform = transformBuilder
 				.setPosition(new Vec3f(0, 10, 0))
-				.setScale(Vec3f.ONE.scale(100)).build();
+				.setScale(Vec3f.ONE.scale(100))
 
 		transformBuilder.setPosition(Vec3f.ZERO);
 
 		TransformObject textTransformObject = new TransformObject(rootGameObject, textTransform);
 
-		TextItem textItem = (TextItem) new MeshBuilder()
-				.setMeshType(MeshType.TEXT)
-				.build();
+		TextItem textItem = (TextItem) new GeometryBuilder()
+				.setGeometryType(GeometryType.TEXT)
+				
 
 		MeshGameObject textMeshGameObject = new MeshGameObject(textTransformObject, textItem);
 
-		MeshObject meshGroupLight = new MeshBuilder()
-				.setMeshType(MeshType.MODEL)
+		GeometryBuilder meshGroupLight = new GeometryBuilder()
+				.setGeometryType(GeometryType.MODEL)
 				.setInvertedNormals(false)
 				.setTexture("/textures/mars.jpg")
 				.setTransform(transformBuilder
 						.setScale(Vec3f.ONE).build())
-				.build();
+				
 
-		MeshObject mesh = new MeshBuilder()
-				.setMeshType(MeshType.CUBOID)
+		GeometryBuilder mesh = new GeometryBuilder()
+				.setGeometryType(GeometryType.CUBOID)
 				.setTexture("/textures/brickwall.jpg")
 				.setNormalTexture("/normalMaps/brickwall_normal.jpg")
 				.setTransform(transformBuilder.build())
-				.build();
+				
 
 
 		MeshGameObject meshGameObject = new MeshGameObject(wholeSceneTransform, mesh);
@@ -1231,7 +1265,7 @@ public class Examples {
 				.setPosition(new Vec3f(-10, 0, 0))
 				.setScale(Vec3f.ONE)
 				.setRotation(cameraRotation)
-				.build();
+				
 		TransformObject cameraTransformGameObject = new TransformObject(wholeSceneTransform, cameraTransform);
 		DirectTransformController directTransformController = new DirectTransformController(cameraTransformGameObject, true, true, 0.01f, 1);
 		CameraObject cameraObject = new CameraObject(cameraTransformGameObject, camera);
@@ -1347,19 +1381,19 @@ public class Examples {
 
 		Transform hudTransform = transformBuilder
 				.setPosition(Vec3f.X)
-				.build();
+				
 
 		Transform transform = transformBuilder
 				.setPosition(Vec3f.ZERO)
-				.build();
+				
 
 		TransformObject wholeSceneTransform = new TransformObject(rootGameObject, transform);
 
 		TransformObject hudTransformGameObject = new TransformObject(rootGameObject, hudTransform);
 
-		MeshObject point = new MeshBuilder()
-				.setMeshType(MeshType.POINT)
-				.build();
+		GeometryBuilder point = new GeometryBuilder()
+				.setGeometryType(GeometryType.POINT)
+				
 
 		MeshGameObject textMeshGameObject = new MeshGameObject(wholeSceneTransform, point);
 
@@ -1386,7 +1420,7 @@ public class Examples {
 
 		Transform cameraTransform = transformBuilder
 				.setPosition(Vec3f.X)
-				.build();
+				
 
 		TransformObject cameraTransformGameObject = new TransformObject(wholeSceneTransform, cameraTransform);
 		DirectTransformController directTransformController = new DirectTransformController(wholeSceneTransform, true, true);
@@ -1425,13 +1459,13 @@ public class Examples {
 
 		TransformBuilder transformBuilder = new TransformBuilder();
 
-		Transform transform = transformBuilder.build();
+		Transform transform = transformBuilder
 
 		TransformObject wholeSceneTransform = new TransformObject(rootGameObject, transform);
 
-		MeshObject point = new MeshBuilder()
-				.setMeshType(MeshType.POINT)
-				.build();
+		GeometryBuilder point = new GeometryBuilder()
+				.setGeometryType(GeometryType.POINT)
+				
 
 		MeshGameObject textMeshGameObject = new MeshGameObject(wholeSceneTransform, point);
 
@@ -1458,7 +1492,7 @@ public class Examples {
 				.setPosition(new Vec3f(-10, 0, 0))
 				.setScale(Vec3f.ONE)
 				.setRotation(cameraRotation)
-				.build();
+				
 		TransformObject cameraTransformGameObject = new TransformObject(wholeSceneTransform, cameraTransform);
 		DirectTransformController directTransformController = new DirectTransformController(cameraTransformGameObject, true, true, 0.01f, 1);
 		CameraObject cameraObject = new CameraObject(cameraTransformGameObject, camera);
@@ -1471,7 +1505,7 @@ public class Examples {
 		ArrayList<Cell> visited = recursiveBackTracker.getVisited();
 
 		// build mase
-		MeshObject cuboid = new MeshBuilder().setMeshType(MeshType.CUBOID).setNormalTexture("/normalMaps/sandNormalMap.jpg").build();
+		GeometryBuilder cuboid = new GeometryBuilder().setGeometryType(GeometryType.CUBOID).setNormalTexture("/normalMaps/sandNormalMap.jpg")
 
 		// render diagonals
 		for (int i = -1; i < width * 2 + 1; i += 2) {
@@ -1479,7 +1513,7 @@ public class Examples {
 			for (int j = -1; j < height * 2 + 1; j += 2) {
 
 				Transform cellTransformcell = transformBuilder
-						.setPosition(new Vec3f(i, j, 0)).build();
+						.setPosition(new Vec3f(i, j, 0))
 
 				TransformObject transformSceneGraphcell = new TransformObject(wholeSceneTransform, cellTransformcell);
 
@@ -1500,7 +1534,7 @@ public class Examples {
 			if (!cell.getPathDirections().contains(north)) {
 
 				Transform cellTransformcell = transformBuilder
-						.setPosition(new Vec3f((cell.getPosition().getX() * 2), (cell.getPosition().getY() * 2) - 1, 0)).build();
+						.setPosition(new Vec3f((cell.getPosition().getX() * 2), (cell.getPosition().getY() * 2) - 1, 0))
 
 				TransformObject transformSceneGraphcell = new TransformObject(wholeSceneTransform, cellTransformcell);
 
@@ -1511,7 +1545,7 @@ public class Examples {
 			if (!cell.getPathDirections().contains(south)) {
 
 				Transform cellTransformcell = transformBuilder
-						.setPosition(new Vec3f((cell.getPosition().getX() * 2), (cell.getPosition().getY() * 2) + 1, 0)).build();
+						.setPosition(new Vec3f((cell.getPosition().getX() * 2), (cell.getPosition().getY() * 2) + 1, 0))
 
 				TransformObject transformSceneGraphcell = new TransformObject(wholeSceneTransform, cellTransformcell);
 
@@ -1522,7 +1556,7 @@ public class Examples {
 			if (!cell.getPathDirections().contains(west) && !cell.getPosition().equals(Vec2i.ZERO)) {
 
 				Transform cellTransformcell = transformBuilder
-						.setPosition(new Vec3f((cell.getPosition().getX() * 2) - 1, (cell.getPosition().getY() * 2), 0)).build();
+						.setPosition(new Vec3f((cell.getPosition().getX() * 2) - 1, (cell.getPosition().getY() * 2), 0))
 
 				TransformObject transformSceneGraphcell = new TransformObject(wholeSceneTransform, cellTransformcell);
 
@@ -1533,7 +1567,7 @@ public class Examples {
 			if (!cell.getPathDirections().contains(east) && !cell.getPosition().equals(new Vec2i(width - 1, height - 1))) {
 
 				Transform cellTransformcell = transformBuilder
-						.setPosition(new Vec3f((cell.getPosition().getX() * 2) + 1, (cell.getPosition().getY() * 2), 0)).build();
+						.setPosition(new Vec3f((cell.getPosition().getX() * 2) + 1, (cell.getPosition().getY() * 2), 0))
 
 				TransformObject transformSceneGraphcell = new TransformObject(wholeSceneTransform, cellTransformcell);
 
