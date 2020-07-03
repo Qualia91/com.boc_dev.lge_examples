@@ -1,5 +1,7 @@
 package com.nick.wood.game_engine.examples;
 
+import com.nick.wood.event_bus.DebugSubscribable;
+import com.nick.wood.event_bus.PickingSubscribable;
 import com.nick.wood.game_engine.examples.utils.ChunkLoader;
 import com.nick.wood.game_engine.model.game_objects.*;
 import com.nick.wood.game_engine.model.input.DirectTransformController;
@@ -11,10 +13,10 @@ import com.nick.wood.game_engine.model.types.GeometryType;
 import com.nick.wood.game_engine.model.types.LightingType;
 import com.nick.wood.game_engine.model.types.SkyboxType;
 import com.nick.wood.game_engine.model.utils.Creation;
+import com.nick.wood.game_engine.model.utils.GameObjectUtils;
 import com.nick.wood.graphics_library.Shader;
 import com.nick.wood.graphics_library.WindowInitialisationParametersBuilder;
 import com.nick.wood.graphics_library.lighting.Fog;
-import com.nick.wood.graphics_library.objects.Camera;
 import com.nick.wood.graphics_library.objects.render_scene.Scene;
 import com.nick.wood.maths.objects.QuaternionF;
 import com.nick.wood.maths.objects.srt.Transform;
@@ -37,7 +39,7 @@ public class Examples {
 
 	public static void main(String[] args) {
 		Examples examples = new Examples();
-		examples.renderingToFBOs();
+		examples.picking();
 	}
 
 	public void basicExample() {
@@ -169,7 +171,6 @@ public class Examples {
 			e.printStackTrace();
 		}
 	}
-
 
 	void infiniteHeightMapTerrain() {
 
@@ -428,7 +429,7 @@ public class Examples {
 
 
 	}
-/*
+
 	public void stress() {
 
 		ArrayList<GameObject> gameObjects = new ArrayList<>();
@@ -437,15 +438,15 @@ public class Examples {
 
 		TransformBuilder transformBuilder = new TransformBuilder();
 
-		Transform transform = transformBuilder
+		Transform transform = transformBuilder.build();
 
-		GeometryBuilder meshGroup = new GeometryBuilder()
+		GeometryBuilder meshGroup = new GeometryBuilder("DRAGON")
 				.setGeometryType(GeometryType.MODEL)
 				.setModelFile("\\models\\dragon.obj")
 				.setTexture("/textures/white.png")
 				.setTransform(transformBuilder
 						.setPosition(Vec3f.ZERO)
-						.setRotation(QuaternionF.RotationX(90)).build())
+						.setRotation(QuaternionF.RotationX(90)).build());
 				
 
 
@@ -455,39 +456,52 @@ public class Examples {
 			Creation.CreateObject(Vec3f.Y.scale(i), wholeSceneTransform, meshGroup);
 		}
 
+		GeometryBuilder meshGroupLight = new GeometryBuilder("LIGHT")
+				.setInvertedNormals(true);
+
+		LightingBuilder pointLight = new LightingBuilder("PointLight")
+				.setLightingType(LightingType.POINT)
+				.setColour(new Vec3f(0.0f, 1.0f, 0.0f))
+				.setIntensity(10f);
+
+		LightingBuilder directionalLight = new LightingBuilder("DirectionalLight")
+				.setLightingType(LightingType.DIRECTIONAL)
+				.setColour(new Vec3f(1.0f, 1.0f, 1.0f))
+				.setDirection(new Vec3f(0.0f, 0.0f, -1.0f))
+				.setIntensity(1);
+
+		LightingBuilder spotLight = new LightingBuilder("SpotLight")
+				.setLightingType(LightingType.SPOT)
+				.setColour(new Vec3f(1.0f, 0.0f, 0.0f))
+				.setIntensity(100f)
+				.setDirection(Vec3f.Y)
+				.setConeAngle(0.1f);
+
+		Transform build = new TransformBuilder()
+				.setScale(new Vec3f(1000, 1000, 1000))
+				.setRotation(QuaternionF.RotationY(Math.PI)).build();
+
+
+		SkyBoxObject skyBoxObject = new SkyBoxObject(rootGameObject, "/textures/altimeterSphere.png", SkyboxType.SPHERE, build);
+
 		Creation.CreateAxis(wholeSceneTransform);
-
-		GeometryBuilder meshGroupLight = new GeometryBuilder()
-				.setInvertedNormals(true)
-				
-
-		PointLight pointLight = new PointLight(
-				new Vec3f(0.0f, 1.0f, 0.0f),
-				10f);
-		DirectionalLight directionalLight = new DirectionalLight(
-				new Vec3f(1.0f, 1.0f, 1.0f),
-				new Vec3f(0.0f, 0.0f, -1.0f),
-				0.1f);
-		SpotLight spotLight = new SpotLight(
-				new PointLight(
-						new Vec3f(1.0f, 0.0f, 0.0f),
-						100f),
-				Vec3f.Y,
-				0.1f
-		);
-
-		Creation.CreateLight(pointLight, wholeSceneTransform, new Vec3f(0.0f, 0.0f, -10f), Vec3f.ONE.scale(0.5f), QuaternionF.Identity, meshGroupLight);
+		Creation.CreateLight(pointLight, wholeSceneTransform, new Vec3f(0.0f, 0.0f, -10), Vec3f.ONE.scale(0.5f), QuaternionF.Identity, meshGroupLight);
 		Creation.CreateLight(spotLight, wholeSceneTransform, new Vec3f(0.0f, -10.0f, 0.0f), Vec3f.ONE.scale(0.5f), QuaternionF.Identity, meshGroupLight);
 		Creation.CreateLight(directionalLight, wholeSceneTransform, new Vec3f(0.0f, -10.0f, 0), Vec3f.ONE.scale(0.5f), QuaternionF.Identity, meshGroupLight);
+
+		CameraBuilder cameraBuilder = new CameraBuilder("Camera")
+				.setFov(1.22173f)
+				.setNear(1)
+				.setFar(10000);
 
 		Transform cameraTransform = transformBuilder
 				.setPosition(new Vec3f(-10, 0, 0))
 				.setScale(Vec3f.ONE)
 				.setRotation(cameraRotation)
+				.build();
 				
 		TransformObject cameraTransformObj = new TransformObject(rootGameObject, cameraTransform);
-		Camera camera = new Camera("camera", 1.22173f, 1, 100000);
-		CameraObject cameraObject = new CameraObject(cameraTransformObj, camera);
+		CameraObject cameraObject = new CameraObject(cameraTransformObj, cameraBuilder);
 		DirectTransformController directCameraController = new DirectTransformController(cameraTransformObj, true, true, 0.01f, 1);
 
 		gameObjects.add(rootGameObject);
@@ -541,80 +555,76 @@ public class Examples {
 
 		Transform transform = transformBuilder
 				.setPosition(Vec3f.ZERO)
+				.build();
 
 		TransformObject wholeSceneTransform = new TransformObject(rootGameObject, transform);
 
 		Transform textTransform = transformBuilder
 				.setPosition(new Vec3f(0, 10, 0))
 				.setScale(Vec3f.ONE.scale(100))
+				.build();
 
 		transformBuilder.setPosition(Vec3f.ZERO);
 
 		TransformObject textTransformObject = new TransformObject(rootGameObject, textTransform);
 
-		TextItem textItem = (TextItem) new GeometryBuilder()
-				.setGeometryType(GeometryType.TEXT)
-				
-
-		MeshGameObject textMeshGameObject = new MeshGameObject(textTransformObject, textItem);
-
-		GeometryBuilder meshGroupLight = new GeometryBuilder()
+		GeometryBuilder meshGroupLight = new GeometryBuilder("Mars")
 				.setGeometryType(GeometryType.MODEL)
 				.setInvertedNormals(false)
 				.setTexture("/textures/mars.jpg")
 				.setTransform(transformBuilder
-						.setScale(Vec3f.ONE).build())
-				
+						.setScale(Vec3f.ONE).build());
 
-		GeometryBuilder mesh = new GeometryBuilder()
+		GeometryBuilder mesh = new GeometryBuilder("BRICK_CUBE")
 				.setGeometryType(GeometryType.CUBOID)
 				.setTexture("/textures/brickwall.jpg")
 				.setNormalTexture("/normalMaps/brickwall_normal.jpg")
-				.setTransform(transformBuilder.build())
-				
+				.setTransform(transformBuilder.build());
 
-		GeometryBuilder dragonMesh = new GeometryBuilder()
-				.setGeometryType(GeometryType.MODEL)
-				.setModelFile("\\models\\dragon.obj")
-				.setTexture("/textures/white.png")
-				.setTransform(transformBuilder
-						.reset()
-						.setPosition(Vec3f.ZERO)
-						.setRotation(QuaternionF.RotationX(90)).build())
-				
+		LightingBuilder pointLight = new LightingBuilder("PointLight")
+				.setLightingType(LightingType.POINT)
+				.setColour(new Vec3f(0.0f, 1.0f, 0.0f))
+				.setIntensity(10f);
 
-		MeshGameObject meshGameObject = new MeshGameObject(wholeSceneTransform, mesh);
+		LightingBuilder directionalLight = new LightingBuilder("DirectionalLight")
+				.setLightingType(LightingType.DIRECTIONAL)
+				.setColour(new Vec3f(1.0f, 1.0f, 1.0f))
+				.setDirection(new Vec3f(0.0f, 0.0f, -1.0f))
+				.setIntensity(1);
 
+		LightingBuilder spotLight = new LightingBuilder("SpotLight")
+				.setLightingType(LightingType.SPOT)
+				.setColour(new Vec3f(1.0f, 0.0f, 0.0f))
+				.setIntensity(100f)
+				.setDirection(Vec3f.Y)
+				.setConeAngle(0.1f);
 
-		PointLight pointLight = new PointLight(
-				new Vec3f(0.0f, 1.0f, 0.0f),
-				10f);
-		DirectionalLight directionalLight = new DirectionalLight(
-				new Vec3f(1.0f, 1.0f, 1.0f),
-				new Vec3f(0.0f, 0.0f, -1.0f),
-				1f);
-		SpotLight spotLight = new SpotLight(
-				new PointLight(
-						new Vec3f(1.0f, 0.0f, 0.0f),
-						100f),
-				Vec3f.Y,
-				0.1f
-		);
+		Transform build = new TransformBuilder()
+				.setScale(new Vec3f(1000, 1000, 1000))
+				.setRotation(QuaternionF.RotationY(Math.PI))
+				.build();
+
+		//SkyBoxObject skyBoxObject = new SkyBoxObject(rootGameObject, "/textures/altimeterSphere.png", SkyboxType.SPHERE, build);
 
 		Creation.CreateAxis(wholeSceneTransform);
-		Creation.CreateLight(pointLight, wholeSceneTransform, new Vec3f(0.0f, 0.0f, -5), Vec3f.ONE.scale(0.5f), QuaternionF.Identity, meshGroupLight);
-		Creation.CreateLight(spotLight, wholeSceneTransform, new Vec3f(0.0f, 10.0f, 0.0f), Vec3f.ONE.scale(0.5f), QuaternionF.Identity, meshGroupLight);
+		Creation.CreateLight(pointLight, wholeSceneTransform, new Vec3f(0.0f, 0.0f, -10), Vec3f.ONE.scale(0.5f), QuaternionF.Identity, meshGroupLight);
+		Creation.CreateLight(spotLight, wholeSceneTransform, new Vec3f(0.0f, -10.0f, 0.0f), Vec3f.ONE.scale(0.5f), QuaternionF.Identity, meshGroupLight);
 		Creation.CreateLight(directionalLight, wholeSceneTransform, new Vec3f(0.0f, -10.0f, 0), Vec3f.ONE.scale(0.5f), QuaternionF.Identity, meshGroupLight);
 
-		Camera camera = new Camera("camera", 1.22173f, 1, 100000);
 		Transform cameraTransform = transformBuilder
 				.setPosition(new Vec3f(-10, 0, 0))
 				.setScale(Vec3f.ONE)
 				.setRotation(cameraRotation)
-				
+				.build();
+
+		CameraBuilder cameraBuilder = new CameraBuilder("Camera")
+				.setFov(1.22173f)
+				.setNear(1)
+				.setFar(10000);
+
 		TransformObject cameraTransformGameObject = new TransformObject(wholeSceneTransform, cameraTransform);
 		DirectTransformController directTransformController = new DirectTransformController(cameraTransformGameObject, false, true, 0.01f, 1);
-		CameraObject cameraObject = new CameraObject(cameraTransformGameObject, camera);
+		CameraObject cameraObject = new CameraObject(cameraTransformGameObject, cameraBuilder);
 		gameObjects.add(rootGameObject);
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder()
@@ -649,9 +659,12 @@ public class Examples {
 				directTransformController,
 				layeredGameObjectsMap);
 
-		DebugSubscribable debugSubscribable = new DebugSubscribable();
-		gameLoop.getGameBus().register(debugSubscribable);
-		gameLoop.getExecutorService().submit(debugSubscribable);
+		PickingSubscribable pickingSubscribable = new PickingSubscribable(uuid -> {
+			GameObject gameObject = GameObjectUtils.FindGameObjectByID(gameObjects, uuid);
+			return gameObject.getGameObjectData().getUuid().toString();
+		});
+		gameLoop.getGameBus().register(pickingSubscribable);
+		gameLoop.getExecutorService().submit(pickingSubscribable);
 
 		try {
 			gameLoop.run();
@@ -661,6 +674,7 @@ public class Examples {
 
 
 	}
+
 /*
 	void terrain() {
 
@@ -1638,4 +1652,5 @@ public class Examples {
 
 
 */
+
 }
