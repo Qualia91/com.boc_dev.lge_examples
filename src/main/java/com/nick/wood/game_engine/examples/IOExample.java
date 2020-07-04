@@ -256,7 +256,7 @@ public class IOExample {
 	static private CameraObject findMainCamera(GameObject gameObject) {
 		if (gameObject instanceof CameraObject) {
 			CameraObject cameraObject = (CameraObject) gameObject;
-			if (cameraObject.getCameraBuilder().getCameraObjectType().toString().equals("PRIMARY")) {
+			if (cameraObject.getBuilder().getCameraObjectType().toString().equals("PRIMARY")) {
 				return cameraObject;
 			}
 		} else {
@@ -273,7 +273,7 @@ public class IOExample {
 	static private TransformObject findMainCameraTransform(GameObject gameObject, GameObject parent) {
 		if (gameObject instanceof CameraObject) {
 			CameraObject cameraObject = (CameraObject) gameObject;
-			if (cameraObject.getCameraBuilder().getCameraObjectType().toString().equals("PRIMARY")) {
+			if (cameraObject.getBuilder().getCameraObjectType().toString().equals("PRIMARY")) {
 				return (TransformObject) parent;
 			}
 		} else {

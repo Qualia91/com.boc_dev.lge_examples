@@ -1,6 +1,9 @@
 package com.nick.wood.game_engine.examples;
 
 import com.nick.wood.event_bus.PickingSubscribable;
+import com.nick.wood.event_bus.event_data.PressEventData;
+import com.nick.wood.event_bus.event_types.ControlEventType;
+import com.nick.wood.event_bus.events.ControlEvent;
 import com.nick.wood.game_engine.core.ChunkLoader;
 import com.nick.wood.game_engine.core.GameLoop;
 import com.nick.wood.game_engine.model.game_objects.*;
@@ -263,9 +266,10 @@ public class Examples {
 			}
 		});
 
+		gameLoop.getGameBus().dispatch(new ControlEvent(ControlEventType.KEY, new PressEventData(87, 1)));
+
 		try {
-			gameLoop.run(() ->
-					chunkLoader.loadChunk(cameraTransformObj.getTransform().getPosition()));
+			gameLoop.run(() -> chunkLoader.loadChunk(cameraTransformObj.getTransform().getPosition()));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
