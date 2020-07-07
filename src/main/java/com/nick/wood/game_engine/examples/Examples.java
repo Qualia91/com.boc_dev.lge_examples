@@ -1,9 +1,5 @@
 package com.nick.wood.game_engine.examples;
 
-import com.nick.wood.event_bus.PickingSubscribable;
-import com.nick.wood.event_bus.event_data.PressEventData;
-import com.nick.wood.event_bus.event_types.ControlEventType;
-import com.nick.wood.event_bus.events.ControlEvent;
 import com.nick.wood.game_engine.core.ChunkLoader;
 import com.nick.wood.game_engine.core.GameLoop;
 import com.nick.wood.game_engine.model.game_objects.*;
@@ -11,12 +7,10 @@ import com.nick.wood.game_engine.model.input.DirectTransformController;
 import com.nick.wood.game_engine.model.object_builders.CameraBuilder;
 import com.nick.wood.game_engine.model.object_builders.GeometryBuilder;
 import com.nick.wood.game_engine.model.object_builders.LightingBuilder;
-import com.nick.wood.game_engine.model.types.CameraObjectType;
 import com.nick.wood.game_engine.model.types.GeometryType;
 import com.nick.wood.game_engine.model.types.LightingType;
 import com.nick.wood.game_engine.model.types.SkyboxType;
 import com.nick.wood.game_engine.model.utils.Creation;
-import com.nick.wood.game_engine.model.utils.GameObjectUtils;
 import com.nick.wood.graphics_library.Shader;
 import com.nick.wood.graphics_library.WindowInitialisationParametersBuilder;
 import com.nick.wood.graphics_library.lighting.Fog;
@@ -29,8 +23,6 @@ import com.nick.wood.maths.objects.vector.Vec3f;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-
-import static com.nick.wood.graphics_library.lighting.Fog.NOFOG;
 
 public class Examples {
 
@@ -56,22 +48,18 @@ public class Examples {
 		Transform transform = transformBuilder
 				.setPosition(Vec3f.ZERO).build();
 
-		TransformObject wholeSceneTransform = new TransformObject(rootGameObject, transform);
+		TransformObject wholeSceneTransform = new TransformObject(transform);
+		rootGameObject.getGameObjectData().attachGameObjectNode(wholeSceneTransform);
 
 		Transform textTransform = transformBuilder
 				.setPosition(new Vec3f(0, 10, 0))
 				.setScale(Vec3f.ONE.scale(100)).build();
 
-		TransformObject textTransformObject = new TransformObject(rootGameObject, textTransform);
+		TransformObject textTransformObject = new TransformObject(textTransform);
+		rootGameObject.getGameObjectData().attachGameObjectNode(textTransformObject);
 
 		GeometryBuilder textItem = new GeometryBuilder("Text")
 				.setGeometryType(GeometryType.TEXT);
-		
-		for (int i = 0; i < 1_000; i++) {
-
-			GeometryGameObject textGeometryGameObject = new GeometryGameObject(textTransformObject, textItem);
-
-		}
 
 		GeometryBuilder mesh = new GeometryBuilder("BrickCuboid")
 				.setGeometryType(GeometryType.CUBOID)
@@ -89,7 +77,8 @@ public class Examples {
 						.setScale(Vec3f.ONE).build());
 				
 
-		GeometryGameObject geometryGameObject = new GeometryGameObject(wholeSceneTransform, mesh);
+		GeometryGameObject geometryGameObject = new GeometryGameObject(mesh);
+		wholeSceneTransform.getGameObjectData().attachGameObjectNode(geometryGameObject);
 
 		LightingBuilder pointLight = new LightingBuilder("PointLight")
 				.setLightingType(LightingType.POINT)
@@ -114,7 +103,8 @@ public class Examples {
 				.setRotation(QuaternionF.RotationY(Math.PI)).build();
 				
 
-		SkyBoxObject skyBoxObject = new SkyBoxObject(rootGameObject, "/textures/altimeterSphere.png", SkyboxType.SPHERE, build);
+		SkyBoxObject skyBoxObject = new SkyBoxObject("/textures/altimeterSphere.png", SkyboxType.SPHERE, build);
+		rootGameObject.getGameObjectData().attachGameObjectNode(skyBoxObject);
 
 		Creation.CreateAxis(wholeSceneTransform);
 		Creation.CreateLight(pointLight, wholeSceneTransform, new Vec3f(0.0f, 0.0f, -10), Vec3f.ONE.scale(0.5f), QuaternionF.Identity, meshGroupLight);
@@ -132,8 +122,10 @@ public class Examples {
 				.setRotation(cameraRotation)
 				.build();
 				
-		TransformObject cameraTransformGameObject = new TransformObject(wholeSceneTransform, cameraTransform);
-		CameraObject cameraObject = new CameraObject(cameraTransformGameObject, cameraBuilder);
+		TransformObject cameraTransformGameObject = new TransformObject(cameraTransform);
+		wholeSceneTransform.getGameObjectData().attachGameObjectNode(cameraTransformGameObject);
+		CameraObject cameraObject = new CameraObject(cameraBuilder);
+		cameraTransformGameObject.getGameObjectData().attachGameObjectNode(cameraObject);
 		DirectTransformController directTransformController = new DirectTransformController(cameraTransformGameObject, true, true, 0.01f, 1);
 		gameObjects.add(rootGameObject);
 
@@ -191,7 +183,8 @@ public class Examples {
 				.setIntensity(1f);
 
 
-		LightObject lightObject = new LightObject(rootGameObject, directionalLight);
+		LightObject lightObject = new LightObject(directionalLight);
+		rootGameObject.getGameObjectData().attachGameObjectNode(lightObject);
 
 
 		Transform cameraTransform = new TransformBuilder()
@@ -200,13 +193,15 @@ public class Examples {
 				.setRotation(cameraRotation)
 				.build();
 				
-		TransformObject cameraTransformObj = new TransformObject(rootGameObject, cameraTransform);
+		TransformObject cameraTransformObj = new TransformObject(cameraTransform);
+		rootGameObject.getGameObjectData().attachGameObjectNode(cameraTransformObj);
 
 		CameraBuilder cameraBuilder = new CameraBuilder("Camera")
 				.setFov(1.22173f)
 				.setNear(500)
 				.setFar(10_000_000);
-		CameraObject cameraObject = new CameraObject(cameraTransformObj, cameraBuilder);
+		CameraObject cameraObject = new CameraObject(cameraBuilder);
+		cameraTransformObj.getGameObjectData().attachGameObjectNode(cameraObject);
 		DirectTransformController directTransformController = new DirectTransformController(cameraTransformObj, true, true, 0.01f, 1000);
 
 		Transform transform = new TransformBuilder()
@@ -215,16 +210,18 @@ public class Examples {
 				.build();
 				
 
-		SkyBoxObject skyBoxObject = new SkyBoxObject(rootGameObject, "/textures/skyBox.jpg", SkyboxType.MODEL, transform);
+		SkyBoxObject skyBoxObject = new SkyBoxObject("/textures/skyBox.jpg", SkyboxType.MODEL, transform);
+		rootGameObject.getGameObjectData().attachGameObjectNode(skyBoxObject);
 		gameObjects.add(rootGameObject);
 
 		Transform waterTransform = new TransformBuilder()
 				.reset()
 				.setPosition(new Vec3f(0, 0, 0)).build();
 				
-		TransformObject waterTransformObj = new TransformObject(rootGameObject, waterTransform);
-		WaterObject water = new WaterObject(waterTransformObj, "WATER_SQUARE", "/textures/waterDuDvMap.jpg", "/normalMaps/waterNormalMap.jpg", size, 0, 1000);
-
+		TransformObject waterTransformObj = new TransformObject(waterTransform);
+		rootGameObject.getGameObjectData().attachGameObjectNode(waterTransformObj);
+		WaterObject water = new WaterObject("WATER_SQUARE", "/textures/waterDuDvMap.jpg", "/normalMaps/waterNormalMap.jpg", size, 0, 1000);
+		waterTransformObj.getGameObjectData().attachGameObjectNode(water);
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
 		wip.setLockCursor(true);
@@ -252,30 +249,29 @@ public class Examples {
 		ArrayList<Scene> sceneLayers = new ArrayList<>();
 		sceneLayers.add(mainScene);
 
-		ChunkLoader chunkLoader = new ChunkLoader(gameObjects, 5, 2, 10);
 
 		GameLoop gameLoop = new GameLoop(sceneLayers,
 				wip.build(),
 				directTransformController,
 				layeredGameObjectsMap);
-
+		ChunkLoader chunkLoader = new ChunkLoader(rootGameObject, 5, 2, 10, gameLoop.getGameBus());
+		chunkLoader.loadChunk(cameraTransformObj.getTransform().getPosition());
 		gameLoop.getExecutorService().submit(() -> {
 			while (true) {
 				Thread.sleep(5000);
 				waterTransform.setPosition(new Vec3f(cameraTransform.getPosition().getX() - (size * 1000.0f / 2.0f), cameraTransform.getPosition().getY() - (size * 1000.0f / 2.0f), 0));
+				chunkLoader.loadChunk(cameraTransformObj.getTransform().getPosition());
 			}
 		});
 
-		gameLoop.getGameBus().dispatch(new ControlEvent(ControlEventType.KEY, new PressEventData(87, 1)));
-
 		try {
-			gameLoop.run(() -> chunkLoader.loadChunk(cameraTransformObj.getTransform().getPosition()));
+			gameLoop.run();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
 	}
-
+/*
 	private void createFboGameObjects(ArrayList<GameObject> fboOneGameObjects) {
 
 		GroupObject fboRootGameObject = new GroupObject();
@@ -679,7 +675,7 @@ public class Examples {
 
 
 	}
-
+*/
 /*
 	void terrain() {
 
