@@ -1,7 +1,9 @@
 package com.nick.wood.game_engine.examples;
 
-import com.nick.wood.game_engine.core.ChunkLoader;
 import com.nick.wood.game_engine.core.GameLoop;
+import com.nick.wood.game_engine.event_bus.event_data.PressEventData;
+import com.nick.wood.game_engine.event_bus.event_types.ControlEventType;
+import com.nick.wood.game_engine.event_bus.events.ControlEvent;
 import com.nick.wood.game_engine.model.game_objects.*;
 import com.nick.wood.game_engine.model.input.DirectTransformController;
 import com.nick.wood.game_engine.model.object_builders.CameraBuilder;
@@ -223,6 +225,39 @@ public class Examples {
 		WaterObject water = new WaterObject("WATER_SQUARE", "/textures/waterDuDvMap.jpg", "/normalMaps/waterNormalMap.jpg", size, 0, 1000);
 		waterTransformObj.getGameObjectData().attachGameObjectNode(water);
 
+		ArrayList<TerrainTextureGameObject> terrainTextureGameObjects = new ArrayList<>();
+		terrainTextureGameObjects.add(new TerrainTextureGameObject(
+				0,
+				500,
+				"/textures/sand.jpg",
+				"/normalMaps/sandNormalMap.jpg"
+		));
+
+		terrainTextureGameObjects.add(new TerrainTextureGameObject(
+				500,
+				2500,
+				"/textures/terrain2.jpg",
+				"/normalMaps/grassNormal.jpg"
+		));
+
+		terrainTextureGameObjects.add(new TerrainTextureGameObject(
+				7000,
+				1000,
+				"/textures/snow.jpg",
+				"/normalMaps/large.jpg"
+		));
+
+		TerrainGenerationObject terrainGenerationObject = new TerrainGenerationObject("AUTO_TERRAIN",
+				3,
+				2,
+				10,
+				terrainTextureGameObjects,
+				1000,
+				50,
+				100);
+
+		rootGameObject.getGameObjectData().attachGameObjectNode(terrainGenerationObject);
+
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
 		wip.setLockCursor(true);
 
@@ -249,20 +284,19 @@ public class Examples {
 		ArrayList<Scene> sceneLayers = new ArrayList<>();
 		sceneLayers.add(mainScene);
 
-
 		GameLoop gameLoop = new GameLoop(sceneLayers,
 				wip.build(),
 				directTransformController,
 				layeredGameObjectsMap);
-		ChunkLoader chunkLoader = new ChunkLoader(rootGameObject, 5, 2, 10, gameLoop.getGameBus());
-		chunkLoader.loadChunk(cameraTransformObj.getTransform().getPosition());
+
 		gameLoop.getExecutorService().submit(() -> {
 			while (true) {
 				Thread.sleep(5000);
 				waterTransform.setPosition(new Vec3f(cameraTransform.getPosition().getX() - (size * 1000.0f / 2.0f), cameraTransform.getPosition().getY() - (size * 1000.0f / 2.0f), 0));
-				chunkLoader.loadChunk(cameraTransformObj.getTransform().getPosition());
 			}
 		});
+
+		gameLoop.getGameBus().dispatch(new ControlEvent(ControlEventType.KEY, new PressEventData(87, 1)));
 
 		try {
 			gameLoop.run();
