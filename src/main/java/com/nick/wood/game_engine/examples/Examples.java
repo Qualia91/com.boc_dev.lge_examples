@@ -1,10 +1,6 @@
 package com.nick.wood.game_engine.examples;
 
 import com.nick.wood.game_engine.core.GameLoop;
-import com.nick.wood.game_engine.core.PickingSubscribable;
-import com.nick.wood.game_engine.event_bus.event_data.PressEventData;
-import com.nick.wood.game_engine.event_bus.event_types.ControlEventType;
-import com.nick.wood.game_engine.event_bus.events.ControlEvent;
 import com.nick.wood.game_engine.model.game_objects.*;
 import com.nick.wood.game_engine.model.object_builders.CameraBuilder;
 import com.nick.wood.game_engine.model.object_builders.GeometryBuilder;
@@ -13,9 +9,7 @@ import com.nick.wood.game_engine.model.types.GeometryType;
 import com.nick.wood.game_engine.model.types.LightingType;
 import com.nick.wood.game_engine.model.types.SkyboxType;
 import com.nick.wood.game_engine.model.utils.Creation;
-import com.nick.wood.game_engine.model.utils.GameObjectUtils;
 import com.nick.wood.game_engine.systems.DirectTransformController;
-import com.nick.wood.game_engine.systems.WaterGeneration;
 import com.nick.wood.graphics_library.Shader;
 import com.nick.wood.graphics_library.WindowInitialisationParametersBuilder;
 import com.nick.wood.graphics_library.lighting.Fog;
