@@ -10,6 +10,7 @@ import com.nick.wood.game_engine.model.types.LightingType;
 import com.nick.wood.game_engine.model.types.SkyboxType;
 import com.nick.wood.game_engine.model.utils.Creation;
 import com.nick.wood.game_engine.systems.DirectTransformController;
+import com.nick.wood.game_engine.systems.WaterGeneration;
 import com.nick.wood.graphics_library.Shader;
 import com.nick.wood.graphics_library.WindowInitialisationParametersBuilder;
 import com.nick.wood.graphics_library.lighting.Fog;
@@ -21,8 +22,6 @@ import com.nick.wood.maths.objects.vector.Vec3f;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class Examples {
 
@@ -212,14 +211,8 @@ public class Examples {
 		rootGameObject.getGameObjectData().attachGameObjectNode(skyBoxObject);
 		gameObjects.add(rootGameObject);
 
-		Transform waterTransform = new TransformBuilder()
-				.reset()
-				.setPosition(new Vec3f(0, 0, 0)).build();
-				
-		TransformObject waterTransformObj = new TransformObject(waterTransform);
-		rootGameObject.getGameObjectData().attachGameObjectNode(waterTransformObj);
-		WaterObject water = new WaterObject("WATER_SQUARE", "/textures/waterDuDvMap.jpg", "/normalMaps/waterNormalMap.jpg", size, 0, 1000);
-		waterTransformObj.getGameObjectData().attachGameObjectNode(water);
+		WaterGenerationObject water = new WaterGenerationObject("WATER_GENERATION", "/textures/waterDuDvMap.jpg", "/normalMaps/waterNormalMap.jpg", size, 0, 1000);
+		rootGameObject.getGameObjectData().attachGameObjectNode(water);
 
 		ArrayList<TerrainTextureGameObject> terrainTextureGameObjects = new ArrayList<>();
 		terrainTextureGameObjects.add(new TerrainTextureGameObject(
@@ -283,13 +276,6 @@ public class Examples {
 				wip.build(),
 				directTransformController,
 				layeredGameObjectsMap);
-
-		//gameLoop.getExecutorService().submit(() -> {
-		//	while (true) {
-		//		Thread.sleep(5000);
-		//		waterTransform.setPosition(new Vec3f(cameraTransform.getPosition().getX() - (size * 1000.0f / 2.0f), cameraTransform.getPosition().getY() - (size * 1000.0f / 2.0f), 0));
-		//	}
-		//});
 
 		gameLoop.getExecutorService().execute(gameLoop::render);
 		gameLoop.getExecutorService().execute(gameLoop::update);
