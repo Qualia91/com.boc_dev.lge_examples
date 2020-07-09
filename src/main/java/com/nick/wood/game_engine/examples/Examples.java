@@ -25,6 +25,8 @@ import com.nick.wood.maths.objects.vector.Vec3f;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Examples {
 
@@ -163,11 +165,9 @@ public class Examples {
 				layeredGameObjectsMap) {
 		};
 
-		try {
-			gameLoop.run();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		gameLoop.getExecutorService().execute(gameLoop::update);
+
+		gameLoop.getExecutorService().execute(gameLoop::render);
 	}
 
 	void infiniteHeightMapTerrain() {
@@ -278,7 +278,6 @@ public class Examples {
 		);
 
 		HashMap<String, ArrayList<GameObject>> layeredGameObjectsMap = new HashMap<>();
-
 		layeredGameObjectsMap.put("MAIN_SCENE", gameObjects);
 
 		ArrayList<Scene> sceneLayers = new ArrayList<>();
@@ -289,20 +288,18 @@ public class Examples {
 				directTransformController,
 				layeredGameObjectsMap);
 
-		gameLoop.getExecutorService().submit(() -> {
-			while (true) {
-				Thread.sleep(5000);
-				waterTransform.setPosition(new Vec3f(cameraTransform.getPosition().getX() - (size * 1000.0f / 2.0f), cameraTransform.getPosition().getY() - (size * 1000.0f / 2.0f), 0));
-			}
-		});
+		//gameLoop.getExecutorService().submit(() -> {
+		//	while (true) {
+		//		Thread.sleep(5000);
+		//		waterTransform.setPosition(new Vec3f(cameraTransform.getPosition().getX() - (size * 1000.0f / 2.0f), cameraTransform.getPosition().getY() - (size * 1000.0f / 2.0f), 0));
+		//	}
+		//});
 
-		gameLoop.getGameBus().dispatch(new ControlEvent(ControlEventType.KEY, new PressEventData(87, 1)));
+		ExecutorService executorService = Executors.newFixedThreadPool(4);
 
-		try {
-			gameLoop.run();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		executorService.execute(gameLoop::render);
+		executorService.execute(gameLoop::update);
+
 
 	}
 /*
