@@ -1,6 +1,10 @@
 package com.nick.wood.game_engine.examples;
 
 import com.nick.wood.game_engine.core.GameLoop;
+import com.nick.wood.game_engine.core.PickingSubscribable;
+import com.nick.wood.game_engine.event_bus.event_data.PressEventData;
+import com.nick.wood.game_engine.event_bus.event_types.ControlEventType;
+import com.nick.wood.game_engine.event_bus.events.ControlEvent;
 import com.nick.wood.game_engine.model.game_objects.*;
 import com.nick.wood.game_engine.model.object_builders.CameraBuilder;
 import com.nick.wood.game_engine.model.object_builders.GeometryBuilder;
@@ -154,7 +158,7 @@ public class Examples {
 		sceneLayers.add(mainScene);
 
 		GameLoop gameLoop = new GameLoop(sceneLayers,
-				wip.build(),
+				wip.setLockCursor(false).build(),
 				directTransformController,
 				layeredGameObjectsMap) {
 		};
@@ -162,6 +166,10 @@ public class Examples {
 		gameLoop.getExecutorService().execute(gameLoop::update);
 
 		gameLoop.getExecutorService().execute(gameLoop::render);
+
+		PickingSubscribable pickingSubscribable = new PickingSubscribable(gameObjects);
+		gameLoop.getGameBus().register(pickingSubscribable);
+		gameLoop.getExecutorService().execute(pickingSubscribable);
 	}
 
 	void infiniteHeightMapTerrain() {
@@ -214,42 +222,51 @@ public class Examples {
 		rootGameObject.getGameObjectData().attachGameObjectNode(water);
 
 		ArrayList<TerrainTextureGameObject> terrainTextureGameObjects = new ArrayList<>();
+
 		terrainTextureGameObjects.add(new TerrainTextureGameObject(
 				0,
-				500,
+				1000,
 				"/textures/sand.jpg",
 				"/normalMaps/sandNormalMap.jpg"
 		));
 
 		terrainTextureGameObjects.add(new TerrainTextureGameObject(
-				500,
-				2500,
+				2000,
+				5000,
 				"/textures/terrain2.jpg",
 				"/normalMaps/grassNormal.jpg"
 		));
 
 		terrainTextureGameObjects.add(new TerrainTextureGameObject(
 				7000,
+				5000,
+				"/textures/rock.jpg",
+				"/normalMaps/rockNormal.jpg"
+		));
+
+		terrainTextureGameObjects.add(new TerrainTextureGameObject(
+				20000,
 				1000,
 				"/textures/snow.jpg",
 				"/normalMaps/large.jpg"
 		));
 
 		TerrainGenerationObject terrainGenerationObject = new TerrainGenerationObject("AUTO_TERRAIN",
-				3,
-				2,
+				5,
+				1.7f,
 				10,
 				terrainTextureGameObjects,
 				1000,
 				50,
-				100);
+				250,
+				50000);
 
 		rootGameObject.getGameObjectData().attachGameObjectNode(terrainGenerationObject);
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
 		wip.setLockCursor(true);
 
-		Vec3f ambientLight = new Vec3f(0.529f, 0.808f, 0.922f);
+		Vec3f ambientLight = new Vec3f(0.21f, 0.4f, 0.45f);
 		Vec3f skyboxAmbientLight = new Vec3f(0.9f, 0.9f, 0.9f);
 		Fog fog = new Fog(true, new Vec3f(0, 0.282f, 0.4f), 0.000003f);
 
@@ -279,7 +296,7 @@ public class Examples {
 		gameLoop.getExecutorService().execute(gameLoop::render);
 		gameLoop.getExecutorService().execute(gameLoop::update);
 
-		//gameLoop.getGameBus().dispatch(new ControlEvent(ControlEventType.KEY, new PressEventData(87, 1)));
+		gameLoop.getGameBus().dispatch(new ControlEvent(ControlEventType.KEY, new PressEventData(87, 1)));
 
 	}
 /*
