@@ -15,7 +15,7 @@
 //import com.nick.wood.game_engine.io.OI;
 //import com.nick.wood.game_engine.io.ser.SceneGraphNodeSer;
 //import com.nick.wood.game_engine.model.game_objects.*;
-//import com.nick.wood.game_engine.model.input.DirectTransformController;
+//import com.nick.wood.game_engine.systems.DirectTransformController;
 //import com.nick.wood.graphics_library.Shader;
 //import com.nick.wood.graphics_library.WindowInitialisationParametersBuilder;
 //import com.nick.wood.graphics_library.lighting.Fog;

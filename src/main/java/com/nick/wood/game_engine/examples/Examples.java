@@ -1,11 +1,7 @@
 package com.nick.wood.game_engine.examples;
 
 import com.nick.wood.game_engine.core.GameLoop;
-import com.nick.wood.game_engine.event_bus.event_data.PressEventData;
-import com.nick.wood.game_engine.event_bus.event_types.ControlEventType;
-import com.nick.wood.game_engine.event_bus.events.ControlEvent;
 import com.nick.wood.game_engine.model.game_objects.*;
-import com.nick.wood.game_engine.model.input.DirectTransformController;
 import com.nick.wood.game_engine.model.object_builders.CameraBuilder;
 import com.nick.wood.game_engine.model.object_builders.GeometryBuilder;
 import com.nick.wood.game_engine.model.object_builders.LightingBuilder;
@@ -13,6 +9,7 @@ import com.nick.wood.game_engine.model.types.GeometryType;
 import com.nick.wood.game_engine.model.types.LightingType;
 import com.nick.wood.game_engine.model.types.SkyboxType;
 import com.nick.wood.game_engine.model.utils.Creation;
+import com.nick.wood.game_engine.systems.DirectTransformController;
 import com.nick.wood.graphics_library.Shader;
 import com.nick.wood.graphics_library.WindowInitialisationParametersBuilder;
 import com.nick.wood.graphics_library.lighting.Fog;
@@ -22,7 +19,6 @@ import com.nick.wood.maths.objects.srt.Transform;
 import com.nick.wood.maths.objects.srt.TransformBuilder;
 import com.nick.wood.maths.objects.vector.Vec3f;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
@@ -295,10 +291,8 @@ public class Examples {
 		//	}
 		//});
 
-		ExecutorService executorService = Executors.newFixedThreadPool(4);
-
-		executorService.execute(gameLoop::render);
-		executorService.execute(gameLoop::update);
+		gameLoop.getExecutorService().execute(gameLoop::render);
+		gameLoop.getExecutorService().execute(gameLoop::update);
 
 
 	}
