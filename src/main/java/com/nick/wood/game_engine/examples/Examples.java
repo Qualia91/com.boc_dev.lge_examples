@@ -9,11 +9,15 @@ import com.nick.wood.game_engine.model.game_objects.*;
 import com.nick.wood.game_engine.model.object_builders.CameraBuilder;
 import com.nick.wood.game_engine.model.object_builders.GeometryBuilder;
 import com.nick.wood.game_engine.model.object_builders.LightingBuilder;
+import com.nick.wood.game_engine.model.types.CameraObjectType;
 import com.nick.wood.game_engine.model.types.GeometryType;
 import com.nick.wood.game_engine.model.types.LightingType;
 import com.nick.wood.game_engine.model.types.SkyboxType;
 import com.nick.wood.game_engine.model.utils.Creation;
-import com.nick.wood.game_engine.systems.DirectTransformController;
+import com.nick.wood.game_engine.systems.GESystem;
+import com.nick.wood.game_engine.systems.control.DirectTransformController;
+import com.nick.wood.game_engine.systems.generation.TerrainGeneration;
+import com.nick.wood.game_engine.systems.generation.WaterGeneration;
 import com.nick.wood.graphics_library.Shader;
 import com.nick.wood.graphics_library.WindowInitialisationParametersBuilder;
 import com.nick.wood.graphics_library.lighting.Fog;
@@ -23,6 +27,7 @@ import com.nick.wood.maths.objects.srt.Transform;
 import com.nick.wood.maths.objects.srt.TransformBuilder;
 import com.nick.wood.maths.objects.vector.Vec3f;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -37,7 +42,8 @@ public class Examples {
 	public static void main(String[] args) {
 		Examples examples = new Examples();
 		//examples.basicExample();
-		examples.infiniteHeightMapTerrain();
+		examples.renderingToFBOs();
+		//examples.infiniteHeightMapTerrain();
 	}
 
 	public void basicExample() {
@@ -293,13 +299,15 @@ public class Examples {
 				directTransformController,
 				layeredGameObjectsMap);
 
+		ArrayList<GESystem> geSystems = gameLoop.getGESystems();
+		geSystems.add(new TerrainGeneration(100));
+		geSystems.add(new WaterGeneration(100));
+
 		gameLoop.getExecutorService().execute(gameLoop::render);
 		gameLoop.getExecutorService().execute(gameLoop::update);
 
-		gameLoop.getGameBus().dispatch(new ControlEvent(ControlEventType.KEY, new PressEventData(87, 1)));
-
 	}
-/*
+
 	private void createFboGameObjects(ArrayList<GameObject> fboOneGameObjects) {
 
 		GroupObject fboRootGameObject = new GroupObject();
@@ -309,7 +317,8 @@ public class Examples {
 		Transform transform = transformBuilder
 				.setPosition(Vec3f.ZERO).build();
 
-		TransformObject wholeSceneTransform = new TransformObject(fboRootGameObject, transform);
+		TransformObject wholeSceneTransform = new TransformObject(transform);
+		fboRootGameObject.getGameObjectData().attachGameObjectNode(wholeSceneTransform);
 
 		Transform textTransform = transformBuilder
 				.setPosition(new Vec3f(0, 10, 0))
@@ -349,15 +358,16 @@ public class Examples {
 				.setRotation(cameraRotation)
 				.build();
 				
-		TransformObject cameraTransformGameObject = new TransformObject(wholeSceneTransform, cameraTransform);
-		CameraObject cameraObject = new CameraObject(cameraTransformGameObject, cameraBuilder);
+		TransformObject cameraTransformGameObject = new TransformObject(cameraTransform);
+		wholeSceneTransform.getGameObjectData().attachGameObjectNode(cameraTransformGameObject);
+		CameraObject cameraObject = new CameraObject(cameraBuilder);
+		cameraTransformGameObject.getGameObjectData().attachGameObjectNode(cameraObject);
 		fboOneGameObjects.add(fboRootGameObject);
 
 
 	}
 
 	public void renderingToFBOs() {
-
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder()
 				.setLockCursor(true);
@@ -377,7 +387,8 @@ public class Examples {
 		Transform mainTransform = 	transformBuilder
 				.setPosition(Vec3f.X).build();
 
-		TransformObject wholeSceneTransform = new TransformObject(rootObject, mainTransform);
+		TransformObject wholeSceneTransform = new TransformObject(mainTransform);
+		rootObject.getGameObjectData().attachGameObjectNode(wholeSceneTransform);
 
 		GeometryBuilder circle = new GeometryBuilder("FBO_RENDERING_PANEL")
 				.setGeometryType(GeometryType.CIRCLE)
@@ -387,7 +398,8 @@ public class Examples {
 				.setTextureFboCameraName("fboCamera");
 
 
-		GeometryGameObject geometryGameObject = new GeometryGameObject(wholeSceneTransform, circle);
+		GeometryGameObject geometryGameObject = new GeometryGameObject(circle);
+		wholeSceneTransform.getGameObjectData().attachGameObjectNode(geometryGameObject);
 
 
 		CameraBuilder cameraBuilder = new CameraBuilder("CAMERA")
@@ -401,9 +413,11 @@ public class Examples {
 				.setRotation(cameraRotation)
 				.build();
 				
-		TransformObject cameraTransformGameObject = new TransformObject(wholeSceneTransform, cameraTransform);
+		TransformObject cameraTransformGameObject = new TransformObject(cameraTransform);
+		wholeSceneTransform.getGameObjectData().attachGameObjectNode(cameraTransformGameObject);
 		DirectTransformController directTransformController = new DirectTransformController(cameraTransformGameObject, true, true, 0.01f, 1);
-		CameraObject cameraObject = new CameraObject(cameraTransformGameObject, cameraBuilder);
+		CameraObject cameraObject = new CameraObject(cameraBuilder);
+		cameraTransformGameObject.getGameObjectData().attachGameObjectNode(cameraObject);
 
 
 		Vec3f ambientLight = new Vec3f(0.9f, 0.9f, 0.9f);
@@ -429,7 +443,7 @@ public class Examples {
 				new Shader("/shaders/skyboxVertex.glsl", "/shaders/skyboxFragment.glsl"),
 				null,
 				null,
-				NOFOG,
+				Fog.NOFOG,
 				ambientLight,
 				skyboxAmbientLight
 		);
@@ -444,21 +458,17 @@ public class Examples {
 		sceneLayers.add(mainScene);
 		sceneLayers.add(fboOneScene);
 
-		GameLoop gameLoop = new GameLoop(
-				sceneLayers,
+		GameLoop gameLoop = new GameLoop(sceneLayers,
 				wip.build(),
 				directTransformController,
 				layeredGameObjectsMap);
 
-		try {
-			gameLoop.run();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		gameLoop.getExecutorService().execute(gameLoop::render);
+		gameLoop.getExecutorService().execute(gameLoop::update);
 
 
 	}
-
+/*
 	public void stress() {
 
 		ArrayList<GameObject> gameObjects = new ArrayList<>();
