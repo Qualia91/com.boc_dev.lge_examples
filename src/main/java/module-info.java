@@ -6,5 +6,6 @@ module com.nick.wood.game_engine.examples {
 	requires com.nick.wood.game_object_serialiser;
 	requires com.nick.wood.game_engine.event_bus;
 	requires com.nick.wood.game.engine.systems;
+	requires com.nick.wood.rigid_body_dynamics;
 	exports com.nick.wood.game_engine.examples;
 }

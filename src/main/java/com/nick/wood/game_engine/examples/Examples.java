@@ -87,10 +87,10 @@ public class Examples {
 				.setNormalTexture("/normalMaps/brickwall_normal.jpg")
 				.setTransform(transformBuilder
 						.reset().build());
-				
 
 
-				
+
+
 
 		GeometryGameObject geometryGameObject = new GeometryGameObject(mesh);
 		wholeSceneTransform.getGameObjectData().attachGameObjectNode(geometryGameObject);
@@ -123,7 +123,7 @@ public class Examples {
 		Transform build = new TransformBuilder()
 				.setScale(new Vec3f(1000, 1000, 1000))
 				.setRotation(QuaternionF.RotationY(Math.PI)).build();
-				
+
 
 		SkyBoxObject skyBoxObject = new SkyBoxObject("/textures/altimeterSphere.png", SkyboxType.SPHERE, build);
 		rootGameObject.getGameObjectData().attachGameObjectNode(skyBoxObject);
@@ -143,7 +143,7 @@ public class Examples {
 				.setScale(Vec3f.ONE)
 				.setRotation(cameraRotation)
 				.build();
-				
+
 		TransformObject cameraTransformGameObject = new TransformObject(cameraTransform);
 		wholeSceneTransform.getGameObjectData().attachGameObjectNode(cameraTransformGameObject);
 		CameraObject cameraObject = new CameraObject(cameraBuilder);
@@ -702,8 +702,8 @@ public class Examples {
 		gameLoop.getExecutorService().execute(gameLoop::render);
 		gameLoop.getExecutorService().execute(gameLoop::update);
 
-		PrintPickingResult printPickingResult = new PrintPickingResult();
-		gameLoop.getGameBus().register(printPickingResult);
+		PickingSubscribable pickingSubscribable = new PickingSubscribable(gameObjects);
+		gameLoop.getGameBus().register(pickingSubscribable);
 
 	}
 
