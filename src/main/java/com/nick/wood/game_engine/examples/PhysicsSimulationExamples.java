@@ -9,6 +9,7 @@ import com.nick.wood.game_engine.model.object_builders.LightingBuilder;
 import com.nick.wood.game_engine.model.object_builders.RigidBodyBuilder;
 import com.nick.wood.game_engine.model.types.GeometryType;
 import com.nick.wood.game_engine.model.types.LightingType;
+import com.nick.wood.game_engine.model.types.RigidBodyObjectType;
 import com.nick.wood.game_engine.model.types.SkyboxType;
 import com.nick.wood.game_engine.model.utils.Creation;
 import com.nick.wood.game_engine.systems.control.DirectTransformController;
@@ -18,6 +19,7 @@ import com.nick.wood.graphics_library.WindowInitialisationParametersBuilder;
 import com.nick.wood.graphics_library.lighting.Fog;
 import com.nick.wood.graphics_library.objects.render_scene.Scene;
 import com.nick.wood.maths.objects.QuaternionF;
+import com.nick.wood.maths.objects.matrix.Matrix4f;
 import com.nick.wood.maths.objects.srt.Transform;
 import com.nick.wood.maths.objects.srt.TransformBuilder;
 import com.nick.wood.maths.objects.vector.Vec3d;
@@ -25,6 +27,7 @@ import com.nick.wood.maths.objects.vector.Vec3f;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 import java.util.UUID;
 
 class PhysicsSimulationExamples {
@@ -37,7 +40,9 @@ class PhysicsSimulationExamples {
 
 	public static void main(String[] args) {
 		PhysicsSimulationExamples physicsSimulationExamples = new PhysicsSimulationExamples();
-		physicsSimulationExamples.twoBalls();
+		//physicsSimulationExamples.twoBalls();
+		//physicsSimulationExamples.twoLinesInteracting();
+		physicsSimulationExamples.randomBox();
 	}
 
 	public void twoBalls() {
@@ -45,13 +50,12 @@ class PhysicsSimulationExamples {
 
 		TransformBuilder transformBuilder = new TransformBuilder();
 
-		UUID uuid = UUID.randomUUID();
-		RigidBodyBuilder rigidBodyBuilderOne = new RigidBodyBuilder(uuid)
+		RigidBodyBuilder rigidBodyBuilderOne = new RigidBodyBuilder(UUID.randomUUID())
 				.setOrigin(new Vec3d(0.0, 0.0, 5.0))
 				.setLinearMomentum(Vec3d.Z.scale(-1))
 				.setAngularMomentum(Vec3d.X.scale(0.1));
 
-		RigidBodyBuilder rigidBodyBuilderTwo = new RigidBodyBuilder(uuid)
+		RigidBodyBuilder rigidBodyBuilderTwo = new RigidBodyBuilder(UUID.randomUUID())
 				.setOrigin(new Vec3d(0.0, 0.0, -5.0))
 				.setLinearMomentum(Vec3d.Z.scale(1))
 				.setAngularMomentum(Vec3d.X.scale(0.1));
@@ -62,12 +66,8 @@ class PhysicsSimulationExamples {
 		gameObjects.add(rigidBodyOne);
 		gameObjects.add(rigidBodyTwo);
 
-		GeometryBuilder meshGroupLight = new GeometryBuilder("MarsModel")
-				.setGeometryType(GeometryType.MODEL)
-				.setInvertedNormals(false)
-				.setTexture("/textures/mars.jpg")
-				.setTransform(transformBuilder
-						.setScale(0.3f).build());
+		GeometryBuilder meshGroupLight = new GeometryBuilder("LIGHTMODEL")
+				.setGeometryType(GeometryType.POINT);
 
 		GeometryBuilder physModel = new GeometryBuilder("PhysModel")
 				.setGeometryType(GeometryType.MODEL)
@@ -91,8 +91,9 @@ class PhysicsSimulationExamples {
 		LightingBuilder directionalLight = new LightingBuilder("DirectionalLight")
 				.setLightingType(LightingType.DIRECTIONAL)
 				.setColour(new Vec3f(1.0f, 1.0f, 1.0f))
-				.setDirection(new Vec3f(0.0f, 0.0f, -1.0f))
-				.setIntensity(10);
+				.setDirection(new Vec3f(-1.0f, -1.0f, -1.0f))
+				.setIntensity(1);
+
 
 		TransformObject axisTransform = new TransformObject(transformBuilder.reset().build());
 		Creation.CreateAxis(axisTransform);
@@ -152,20 +153,23 @@ class PhysicsSimulationExamples {
 
 		gameLoop.getExecutorService().execute(gameLoop::update);
 		gameLoop.getExecutorService().execute(gameLoop::render);
-
-		PickingSubscribable pickingSubscribable = new PickingSubscribable(gameObjects);
-		gameLoop.getGameBus().register(pickingSubscribable);
-		gameLoop.getExecutorService().execute(pickingSubscribable);
 	}
 
+	public void twoLinesInteracting() {
+		ArrayList<GameObject> gameObjects = new ArrayList<>();
 
-/*
-	void twoLinesInteracting() throws ExecutionException, InterruptedException {
+		TransformBuilder transformBuilder = new TransformBuilder();
 
-		ArrayList<RigidBody> rigidBodies = new ArrayList<>();
+		GeometryBuilder physModel = new GeometryBuilder("PhysModel")
+				.setGeometryType(GeometryType.MODEL)
+				.setInvertedNormals(false)
+				.setTexture("/textures/mars.jpg")
+				.setTransform(transformBuilder
+						.setScale(0.35f).build());
 
-		ArrayList<Force> forces = new ArrayList<>();
-		Quaternion quaternion = Quaternion.RotationX(0.0);
+		GeometryGameObject physicsObMeshOne = new GeometryGameObject(
+				physModel
+		);
 
 		// demo 1: 2 lines interacting
 		for (int j = 0; j < 10; j++) {
@@ -179,46 +183,194 @@ class PhysicsSimulationExamples {
 					//ang = Vec3d.X.scale(0.01).scale(j);
 					ang = Vec3d.ZERO;
 				}
-				UUID uuidR = UUID.randomUUID();
-				RigidBody rigidBodyR = new RigidBody(uuidR, 1, new Vec3d(1.0, 1.0, 1.0), new Vec3d(5.0, j * 3.0 - 2 * i / 3.0, i * 8), quaternion, mom, ang, RigidBodyType.SPHERE, forces);
-				rigidBodies.add(rigidBodyR);
+
+				UUID uuid = UUID.randomUUID();
+				RigidBodyBuilder rigidBodyBuilder = new RigidBodyBuilder(uuid)
+						.setOrigin(new Vec3d(5.0, j * 3.0 - 2 * i / 3.0, i * 8))
+						.setLinearMomentum(mom)
+						.setAngularMomentum(ang);
+
+				RigidBodyObject rigidBody = new RigidBodyObject(rigidBodyBuilder);
+
+				gameObjects.add(rigidBody);
+
+				rigidBody.getTransformObject().getGameObjectData().attachGameObjectNode(physicsObMeshOne);
 			}
 		}
 
-		SceneGraph cameraRootObject = new SceneGraph();
-		Camera camera = new Camera(new Vec3f(0.0f, 0.0f, 10.0f), new Vec3f(0.0f, 0.0f, 0.0f), 0.5f, 0.1f);
-		CameraSceneGraph cameraGameObject = new CameraSceneGraph(cameraRootObject, camera, CameraType.PRIMARY);
+		GeometryBuilder meshGroupLight = new GeometryBuilder("MarsModel")
+				.setGeometryType(GeometryType.MODEL)
+				.setInvertedNormals(false)
+				.setTexture("/textures/mars.jpg")
+				.setTransform(transformBuilder
+						.setScale(0.3f).build());
 
-		HashMap<UUID, SceneGraph> rootGameObjectHashMap = new HashMap<>();
+		LightingBuilder directionalLightOne = new LightingBuilder("DirectionalLightOne")
+				.setLightingType(LightingType.DIRECTIONAL)
+				.setColour(new Vec3f(1.0f, 1.0f, 1.0f))
+				.setDirection(new Vec3f(-1.0f, -1.0f, -1.0f))
+				.setIntensity(1);
 
-		for (RigidBody rigidBody : rigidBodies) {
-			rootGameObjectHashMap.put(rigidBody.getUuid(), convertToGameObject(rigidBody, "/textures/white.png"));
-		}
+		TransformObject axisTransform = new TransformObject(transformBuilder.reset().build());
+		Creation.CreateAxis(axisTransform);
+		Creation.CreateLight(directionalLightOne, axisTransform, new Vec3f(0.0f, 0.0f, 10), Vec3f.ONE.scale(0.5f), QuaternionF.Identity, meshGroupLight);
+		gameObjects.add(axisTransform);
 
-		rootGameObjectHashMap.put(UUID.randomUUID(), cameraRootObject);
+		CameraBuilder cameraBuilder = new CameraBuilder("Camera")
+				.setFov(1.22173f)
+				.setNear(1)
+				.setFar(100000);
 
-		createArena(rootGameObjectHashMap, rigidBodies, 100, forces);
+		Transform cameraTransform = transformBuilder
+				.setPosition(new Vec3f(-10, 0, 0))
+				.setScale(Vec3f.ONE)
+				.setRotation(cameraRotation)
+				.build();
 
-		SceneGraph lightRootObject = new SceneGraph();
-		rootGameObjectHashMap.put(UUID.randomUUID(), lightRootObject);
+		TransformObject cameraTransformGameObject = new TransformObject(cameraTransform);
+		gameObjects.add(cameraTransformGameObject);
+		CameraObject cameraObject = new CameraObject(cameraBuilder);
+		cameraTransformGameObject.getGameObjectData().attachGameObjectNode(cameraObject);
+		DirectTransformController directTransformController = new DirectTransformController(cameraTransformGameObject, true, true, 0.01f, 1);
 
-		SimulationInterface simulation = new com.nick.wood.physics.rigid_body_dynamics_verbose.Simulation(rigidBodies);
-		Game game = new Game(1000, 800, simulation, rootGameObjectHashMap);
-		Control cameraViewControl = new DirectCameraController(camera, true, false);
-		LWJGLGameControlManager lwjglGameControlManagerCameraView = new LWJGLGameControlManager(game.getWindow().getGraphicsLibraryInput(), cameraViewControl);
-		game.addController(lwjglGameControlManagerCameraView);
+		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
+		wip.setLockCursor(true);
 
-		ExecutorService executor = Executors.newFixedThreadPool(4);
+		Vec3f ambientLight = new Vec3f(0.5f, 0.5f, 0.5f);
+		Vec3f skyboxAmbientLight = new Vec3f(0.9f, 0.9f, 0.9f);
+		Fog fog = new Fog(true, ambientLight, 0.0001f);
 
-		Future<?> submit = executor.submit(game);
+		Scene mainScene = new Scene(
+				"MAIN_SCENE",
+				new Shader("/shaders/mainVertex.glsl", "/shaders/mainFragment.glsl"),
+				new Shader("/shaders/waterVertex.glsl", "/shaders/waterFragment.glsl"),
+				new Shader("/shaders/skyboxVertex.glsl", "/shaders/skyboxFragment.glsl"),
+				new Shader("/shaders/pickingVertex.glsl", "/shaders/pickingFragment.glsl"),
+				new Shader("/shaders/terrainVertex.glsl", "/shaders/terrainFragment.glsl"),
+				fog,
+				ambientLight,
+				skyboxAmbientLight
+		);
 
-		// waits for game to finish
-		submit.get();
+		HashMap<String, ArrayList<GameObject>> layeredGameObjectsMap = new HashMap<>();
 
-		// closes executor service
-		executor.shutdown();
+		layeredGameObjectsMap.put("MAIN_SCENE", gameObjects);
+
+		ArrayList<Scene> sceneLayers = new ArrayList<>();
+		sceneLayers.add(mainScene);
+
+		GameLoop gameLoop = new GameLoop(sceneLayers,
+				wip.build(),
+				directTransformController,
+				layeredGameObjectsMap) {
+		};
+
+		gameLoop.getGESystems().add(new RigidBodyPhysicsSystem(5));
+
+		gameLoop.getExecutorService().execute(gameLoop::update);
+		gameLoop.getExecutorService().execute(gameLoop::render);
 	}
 
+	public void randomBox() {
+		ArrayList<GameObject> gameObjects = new ArrayList<>();
+
+		TransformBuilder transformBuilder = new TransformBuilder();
+
+		GeometryBuilder physModel = new GeometryBuilder("PhysModel")
+				.setGeometryType(GeometryType.MODEL)
+				.setInvertedNormals(false)
+				.setTexture("/textures/mars.jpg")
+				.setTransform(transformBuilder
+						.setScale(0.35f).build());
+
+		GeometryGameObject physicsObMeshOne = new GeometryGameObject(
+				physModel
+		);
+
+		Random random = new Random();
+		for (int k = -3; k < 3; k++) {
+			for (int j = -3; j < 3; j++) {
+				for (int i = -3; i < 3; i++) {
+					if (!(i == 0 && j == 0 && k == 0)) {
+						UUID uuid = UUID.randomUUID();
+						Vec3d mom = Vec3d.X.scale(random.nextInt(20) - 10).add(Vec3d.Y.scale(random.nextInt(20) - 10)).add(Vec3d.Z.scale(random.nextInt(20) - 10));
+						Vec3d angMom = Vec3d.X.scale(random.nextInt(20) - 10).add(Vec3d.Y.scale(random.nextInt(20) - 10)).add(Vec3d.Z.scale(random.nextInt(20) - 10));
+						RigidBodyBuilder rigidBodyBuilder = new RigidBodyBuilder(uuid)
+								.setOrigin(new Vec3d(5.0, j * 3.0 - 2 * i / 3.0, i * 8))
+								.setLinearMomentum(mom)
+								.setAngularMomentum(angMom);
+
+						RigidBodyObject rigidBody = new RigidBodyObject(rigidBodyBuilder);
+
+						gameObjects.add(rigidBody);
+
+						rigidBody.getTransformObject().getGameObjectData().attachGameObjectNode(physicsObMeshOne);
+					}
+				}
+			}
+		}
+
+		createArena(gameObjects, 100);
+
+		TransformObject axisTransform = new TransformObject(transformBuilder.reset().build());
+		Creation.CreateAxis(axisTransform);
+		gameObjects.add(axisTransform);
+
+		CameraBuilder cameraBuilder = new CameraBuilder("Camera")
+				.setFov(1.22173f)
+				.setNear(1)
+				.setFar(100000);
+
+		Transform cameraTransform = transformBuilder
+				.setPosition(new Vec3f(-10, 0, 0))
+				.setScale(Vec3f.ONE)
+				.setRotation(cameraRotation)
+				.build();
+
+		TransformObject cameraTransformGameObject = new TransformObject(cameraTransform);
+		gameObjects.add(cameraTransformGameObject);
+		CameraObject cameraObject = new CameraObject(cameraBuilder);
+		cameraTransformGameObject.getGameObjectData().attachGameObjectNode(cameraObject);
+		DirectTransformController directTransformController = new DirectTransformController(cameraTransformGameObject, true, true, 0.01f, 1);
+
+		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
+		wip.setLockCursor(true);
+
+		Vec3f ambientLight = new Vec3f(0.5f, 0.5f, 0.5f);
+		Vec3f skyboxAmbientLight = new Vec3f(0.9f, 0.9f, 0.9f);
+		Fog fog = new Fog(true, ambientLight, 0.0001f);
+
+		Scene mainScene = new Scene(
+				"MAIN_SCENE",
+				new Shader("/shaders/mainVertex.glsl", "/shaders/mainFragment.glsl"),
+				new Shader("/shaders/waterVertex.glsl", "/shaders/waterFragment.glsl"),
+				new Shader("/shaders/skyboxVertex.glsl", "/shaders/skyboxFragment.glsl"),
+				null,
+				new Shader("/shaders/terrainVertex.glsl", "/shaders/terrainFragment.glsl"),
+				fog,
+				ambientLight,
+				skyboxAmbientLight
+		);
+
+		HashMap<String, ArrayList<GameObject>> layeredGameObjectsMap = new HashMap<>();
+
+		layeredGameObjectsMap.put("MAIN_SCENE", gameObjects);
+
+		ArrayList<Scene> sceneLayers = new ArrayList<>();
+		sceneLayers.add(mainScene);
+
+		GameLoop gameLoop = new GameLoop(sceneLayers,
+				wip.build(),
+				directTransformController,
+				layeredGameObjectsMap) {
+		};
+
+		gameLoop.getGESystems().add(new RigidBodyPhysicsSystem(5));
+
+		gameLoop.getExecutorService().execute(gameLoop::update);
+		gameLoop.getExecutorService().execute(gameLoop::render);
+	}
+/*
 	void randomBox() throws ExecutionException, InterruptedException {
 
 		ArrayList<RigidBody> rigidBodies = new ArrayList<>();
@@ -666,124 +818,30 @@ class PhysicsSimulationExamples {
 		return uuid;
 
 	}
-
-	private void createArena(HashMap<UUID, SceneGraph> rootGameObject, ArrayList<RigidBody> rigidBodies, int width, ArrayList<Force> forces) {
+*/
+	private void createArena(ArrayList<GameObject> gameObjects, int width) {
 		//// Arena
-		SceneGraph sceneGraph = new SceneGraph();
 		UUID uuid = UUID.randomUUID();
-		RigidBody rigidBody = new RigidBody(
-				uuid,
-				10,
-				new Vec3d(width, width, width),
-				Vec3d.ZERO,
-				new Quaternion(1.0, 0.0, 0.0, 0.0),
-				Vec3d.ZERO,
-				Vec3d.Z,
-				RigidBodyType.SPHERE_INNER,
-				forces
-		);
-		rigidBodies.add(rigidBody);
-		MeshObject arenaMesh = new MeshBuilder()
-				.setMeshType(MODEL)
+		RigidBodyBuilder rigidBodyBuilder = new RigidBodyBuilder(uuid)
+				.setMass(10)
+				.setDimensions(new Vec3d(width, width, width))
+				.setRigidBodyType(RigidBodyObjectType.SPHERE_INNER);
+
+		RigidBodyObject rigidBody = new RigidBodyObject(rigidBodyBuilder);
+
+		GeometryBuilder arenaMesh = new GeometryBuilder("ARENA")
+				.setGeometryType(GeometryType.SPHERE)
 				.setInvertedNormals(true)
-				.setTexture("/textures/2k_neptune.jpg")
-				.setTransform(Matrix4f.Transform(Vec3f.ZERO, Matrix4f.Identity, Vec3f.ONE.scale(width * 0.4f)))
-		.build();
-		Transform transform = new Transform(Vec3f.ZERO, Vec3f.ONE, Matrix4f.Identity);
+				.setTexture("/textures/2k_neptune.jpg");
 
-		TransformSceneGraph transformSceneGraph = new TransformSceneGraph(sceneGraph, transform);
-		MeshSceneGraph meshSceneGraph = new MeshSceneGraph(transformSceneGraph, arenaMesh);
+		GeometryGameObject geometryGameObject = new GeometryGameObject(arenaMesh);
+		rigidBody.getTransformObject().getGameObjectData().attachGameObjectNode(geometryGameObject);
 
-		MeshObject meshGroupLight = new MeshBuilder()
-				.setTriangleNumber(10)
-				.setInvertedNormals(true)
-				.setTransform(Matrix4f.Transform(Vec3f.ZERO, Matrix4f.Identity, Vec3f.ONE.scale(0.1f)))
-		.build();
-
-		float posOfLights = 45f;
-
-		createLightUnderTransform(new Vec3f(1.0f, 0.0f, 0.0f), Vec3f.Z.scale( posOfLights), meshGroupLight, transformSceneGraph, 10);
-		createLightUnderTransform(new Vec3f(0.0f, 1.0f, 0.0f), Vec3f.Z.scale(-posOfLights), meshGroupLight, transformSceneGraph, 10);
-		createLightUnderTransform(new Vec3f(0.0f, 0.0f, 1.0f), Vec3f.X.scale( posOfLights), meshGroupLight, transformSceneGraph, 10);
-		createLightUnderTransform(new Vec3f(1.0f, 1.0f, 0.0f), Vec3f.X.scale(-posOfLights), meshGroupLight, transformSceneGraph, 10);
-		createLightUnderTransform(new Vec3f(1.0f, 0.0f, 1.0f), Vec3f.Y.scale( posOfLights), meshGroupLight, transformSceneGraph, 10);
-		createLightUnderTransform(new Vec3f(0.0f, 1.0f, 1.0f), Vec3f.Y.scale(-posOfLights), meshGroupLight, transformSceneGraph, 10);
-		rootGameObject.put(uuid, sceneGraph);
+		gameObjects.add(rigidBody);
 
 	}
 
-	public SceneGraph convertToGameObjectCuboid(RigidBody rigidBody, String texture) {
-
-		SceneGraph rootObject = new SceneGraph();
-
-		Transform transform = new Transform(
-				(Vec3f) rigidBody.getOrigin().toVecf(),
-				Vec3f.ONE,
-				rigidBody.getRotation().toMatrix().toMatrix4f()
-		);
-
-		TransformSceneGraph transformGameObject = new TransformSceneGraph(rootObject, transform);
-
-		//Matrix4f matrix4f = Matrix4f.Transform(Vec3f.ZERO, Matrix4f.Rotation(-90, Vec3f.X).multiply(Matrix4f.Rotation(180, Vec3f.Z)), Vec3f.ONE);
-		Matrix4f matrix4f = Matrix4f.Transform(Vec3f.ZERO, Matrix4f.Rotation(-90, Vec3f.X), Vec3f.ONE);
-		//Matrix4f matrix4f = Matrix4f.Transform(Vec3f.ZERO, Matrix4f.Identity, (Vec3f) rigidBody.getDimensions().toVecf());
-
-		MeshBuilder meshBuilder = new MeshBuilder()
-				//.setMeshType(CUBOID)
-				.setMeshType(MODEL)
-				.setModelFile("D:\\Software\\Programming\\projects\\Blender\\spaceShips\\4b2b1.obj")
-				.setTexture(texture)
-				.setTransform(matrix4f);
-		MeshObject meshObject = meshBuilder.build();
-
-		MeshSceneGraph meshGameObject = new MeshSceneGraph(
-				transformGameObject,
-				meshObject
-		);
-
-		return rootObject;
-
-	}
-
-	public SceneGraph convertToGameObject(RigidBody rigidBody, String texture) {
-
-		SceneGraph rootObject = new SceneGraph();
-
-		Transform transform = new Transform(
-				(Vec3f) rigidBody.getOrigin().toVecf(),
-				(Vec3f) rigidBody.getDimensions().toVecf(),
-				rigidBody.getRotation().toMatrix().toMatrix4f()
-		);
-
-		TransformSceneGraph transformGameObject = new TransformSceneGraph(rootObject, transform);
-
-		MeshBuilder meshBuilder = new MeshBuilder();
-		meshBuilder.setTriangleNumber(10)
-				.setTexture(texture);
-
-		switch (rigidBody.getType()) {
-			case SPHERE_INNER:
-				meshBuilder.setInvertedNormals(true);
-			case SPHERE:
-				meshBuilder.setMeshType(MeshType.SPHERE);
-				break;
-			case CUBOID:
-				meshBuilder.setMeshType(MeshType.CUBOID);
-				break;
-			default:
-				meshBuilder.setMeshType(MeshType.SPHERE);
-				break;
-		}
-		;
-
-		MeshSceneGraph meshGameObject = new MeshSceneGraph(
-				transformGameObject,
-				meshBuilder.build()
-		);
-
-		return rootObject;
-
-	}
+	/*
 
 	private void createLight(Vec3f colour, Vec3f pos, SceneGraph rootGameObject, MeshObject meshGroupLight) {
 		PointLight light = new PointLight(
