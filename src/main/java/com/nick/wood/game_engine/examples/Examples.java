@@ -17,6 +17,7 @@ import com.nick.wood.game_engine.model.utils.Creation;
 import com.nick.wood.game_engine.model.utils.GameObjectUtils;
 import com.nick.wood.game_engine.systems.GESystem;
 import com.nick.wood.game_engine.systems.control.DirectTransformController;
+import com.nick.wood.game_engine.systems.control.KeyMapping;
 import com.nick.wood.game_engine.systems.generation.Cell;
 import com.nick.wood.game_engine.systems.generation.RecursiveBackTracker;
 import com.nick.wood.game_engine.systems.generation.TerrainGeneration;
@@ -52,7 +53,7 @@ public class Examples {
 		Examples examples = new Examples();
 		//examples.basicExample();
 		//examples.renderingToFBOs();
-		examples.infiniteHeightMapTerrain();
+		//examples.infiniteHeightMapTerrain();
 		//examples.picking();
 		//examples.cubeTerrain();
 		//examples.maze();
@@ -72,14 +73,17 @@ public class Examples {
 		rootGameObject.getGameObjectData().attachGameObjectNode(wholeSceneTransform);
 
 		Transform textTransform = transformBuilder
-				.setPosition(new Vec3f(0, 10, 0))
-				.setScale(Vec3f.ONE.scale(100)).build();
+				.setPosition(new Vec3f(0, 0, 0))
+				.setScale(Vec3f.ONE.scale(10)).build();
 
 		TransformObject textTransformObject = new TransformObject(textTransform);
 		rootGameObject.getGameObjectData().attachGameObjectNode(textTransformObject);
 
 		GeometryBuilder textItem = new GeometryBuilder("Text")
 				.setGeometryType(GeometryType.TEXT);
+
+		GeometryGameObject textGameObject = new GeometryGameObject(textItem);
+		wholeSceneTransform.getGameObjectData().attachGameObjectNode(textGameObject);
 
 		GeometryBuilder mesh = new GeometryBuilder("BrickCuboid")
 				.setGeometryType(GeometryType.CUBOID)
@@ -88,55 +92,50 @@ public class Examples {
 				.setTransform(transformBuilder
 						.reset().build());
 
-
-
-
-
 		GeometryGameObject geometryGameObject = new GeometryGameObject(mesh);
 		wholeSceneTransform.getGameObjectData().attachGameObjectNode(geometryGameObject);
 
 		GeometryBuilder meshGroupLight = new GeometryBuilder("MarsModel")
 				.setGeometryType(GeometryType.MODEL)
 				.setInvertedNormals(false)
-				.setTexture("/textures/mars.jpg")
 				.setTransform(transformBuilder
-						.setScale(Vec3f.ONE).build());
+						.setScale(0.1f).build());
 
 		LightingBuilder pointLight = new LightingBuilder("PointLight")
 				.setLightingType(LightingType.POINT)
 				.setColour(new Vec3f(0.0f, 1.0f, 0.0f))
-				.setIntensity(10f);
+				.setIntensity(100f);
 
 		LightingBuilder directionalLight = new LightingBuilder("DirectionalLight")
 				.setLightingType(LightingType.DIRECTIONAL)
 				.setColour(new Vec3f(1.0f, 1.0f, 1.0f))
 				.setDirection(new Vec3f(0.0f, 0.0f, -1.0f))
-				.setIntensity(1);
+				.setIntensity(0.1f);
 
 		LightingBuilder spotLight = new LightingBuilder("SpotLight")
 				.setLightingType(LightingType.SPOT)
 				.setColour(new Vec3f(1.0f, 0.0f, 0.0f))
 				.setIntensity(100f)
 				.setDirection(Vec3f.Y)
-				.setConeAngle(0.1f);
+				.setConeAngle(0.05f);
 
 		Transform build = new TransformBuilder()
 				.setScale(new Vec3f(1000, 1000, 1000))
 				.setRotation(QuaternionF.RotationY(Math.PI)).build();
 
 
-		SkyBoxObject skyBoxObject = new SkyBoxObject("/textures/altimeterSphere.png", SkyboxType.SPHERE, build);
-		rootGameObject.getGameObjectData().attachGameObjectNode(skyBoxObject);
+//		SkyBoxObject skyBoxObject = new SkyBoxObject("/textures/8k_venus_surface.jpg", SkyboxType.MODEL, build);
+//		rootGameObject.getGameObjectData().attachGameObjectNode(skyBoxObject);
 
-		Creation.CreateAxis(wholeSceneTransform);
+//		Creation.CreateAxis(wholeSceneTransform);
 		Creation.CreateLight(pointLight, wholeSceneTransform, new Vec3f(0.0f, 0.0f, -10), Vec3f.ONE.scale(0.5f), QuaternionF.Identity, meshGroupLight);
 		Creation.CreateLight(spotLight, wholeSceneTransform, new Vec3f(0.0f, -10.0f, 0.0f), Vec3f.ONE.scale(0.5f), QuaternionF.Identity, meshGroupLight);
 		Creation.CreateLight(directionalLight, wholeSceneTransform, new Vec3f(0.0f, -10.0f, 0), Vec3f.ONE.scale(0.5f), QuaternionF.Identity, meshGroupLight);
 
 		CameraBuilder cameraBuilder = new CameraBuilder("Camera")
 				.setFov(1.22173f)
-				.setNear(1)
-				.setFar(100000);
+				.setNear(0.01f)
+				.setFar(1000);
 
 		Transform cameraTransform = transformBuilder
 				.setPosition(new Vec3f(-10, 0, 0))
@@ -148,7 +147,7 @@ public class Examples {
 		wholeSceneTransform.getGameObjectData().attachGameObjectNode(cameraTransformGameObject);
 		CameraObject cameraObject = new CameraObject(cameraBuilder);
 		cameraTransformGameObject.getGameObjectData().attachGameObjectNode(cameraObject);
-		DirectTransformController directTransformController = new DirectTransformController(cameraTransformGameObject, true, true, 0.01f, 1);
+		DirectTransformController directTransformController = new DirectTransformController(cameraTransformGameObject, true, true, 0.01f, 0.1f);
 		gameObjects.add(rootGameObject);
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
@@ -178,7 +177,7 @@ public class Examples {
 		sceneLayers.add(mainScene);
 
 		GameLoop gameLoop = new GameLoop(sceneLayers,
-				wip.setLockCursor(false).build(),
+				wip.build(),
 				directTransformController,
 				layeredGameObjectsMap) {
 		};
@@ -187,9 +186,9 @@ public class Examples {
 
 		gameLoop.getExecutorService().execute(gameLoop::render);
 
-		PickingSubscribable pickingSubscribable = new PickingSubscribable(gameObjects);
-		gameLoop.getGameBus().register(pickingSubscribable);
-		gameLoop.getExecutorService().execute(pickingSubscribable);
+//		PickingSubscribable pickingSubscribable = new PickingSubscribable(gameObjects);
+//		gameLoop.getGameBus().register(pickingSubscribable);
+//		gameLoop.getExecutorService().execute(pickingSubscribable);
 	}
 
 	void infiniteHeightMapTerrain() {
@@ -198,7 +197,7 @@ public class Examples {
 
 		GroupObject rootGameObject = new GroupObject();
 
-		int size = 1000;
+		int size = 500;
 
 		LightingBuilder directionalLight = new LightingBuilder("DirectionalLight")
 				.setLightingType(LightingType.DIRECTIONAL)
@@ -226,7 +225,7 @@ public class Examples {
 				.setFar(10_000_000);
 		CameraObject cameraObject = new CameraObject(cameraBuilder);
 		cameraTransformObj.getGameObjectData().attachGameObjectNode(cameraObject);
-		DirectTransformController directTransformController = new DirectTransformController(cameraTransformObj, true, true, 0.01f, 1000);
+		DirectTransformController directTransformController = new DirectTransformController(cameraTransformObj, true, true, 0.001f, 100);
 
 		Transform transform = new TransformBuilder()
 				.setScale(5_000_000)
@@ -245,27 +244,27 @@ public class Examples {
 
 		terrainTextureGameObjects.add(new TerrainTextureGameObject(
 				0,
-				1000,
+				100,
 				"/textures/sand.jpg",
 				"/normalMaps/sandNormalMap.jpg"
 		));
 
 		terrainTextureGameObjects.add(new TerrainTextureGameObject(
-				2000,
+				200,
 				5000,
 				"/textures/terrain2.jpg",
 				"/normalMaps/grassNormal.jpg"
 		));
 
 		terrainTextureGameObjects.add(new TerrainTextureGameObject(
-				7000,
+				700,
 				5000,
 				"/textures/rock.jpg",
 				"/normalMaps/rockNormal.jpg"
 		));
 
 		terrainTextureGameObjects.add(new TerrainTextureGameObject(
-				20000,
+				2000,
 				1000,
 				"/textures/snow.jpg",
 				"/normalMaps/large.jpg"
@@ -276,10 +275,10 @@ public class Examples {
 				1.7f,
 				10,
 				terrainTextureGameObjects,
-				1000,
+				100,
 				50,
 				250,
-				50000);
+				5000);
 
 		rootGameObject.getGameObjectData().attachGameObjectNode(terrainGenerationObject);
 
@@ -288,7 +287,7 @@ public class Examples {
 
 		Vec3f ambientLight = new Vec3f(0.21f, 0.4f, 0.45f);
 		Vec3f skyboxAmbientLight = new Vec3f(0.9f, 0.9f, 0.9f);
-		Fog fog = new Fog(true, new Vec3f(0, 0.282f, 0.4f), 0.000003f);
+		Fog fog = new Fog(true, new Vec3f(0, 0.282f, 0.4f), 0.00003f);
 
 		Scene mainScene = new Scene(
 				"MAIN_SCENE",
@@ -322,7 +321,7 @@ public class Examples {
 
 	}
 
-	private void createFboGameObjects(ArrayList<GameObject> fboOneGameObjects) {
+	private TransformObject createFboGameObjects(ArrayList<GameObject> fboOneGameObjects) {
 
 		GroupObject fboRootGameObject = new GroupObject();
 
@@ -334,10 +333,6 @@ public class Examples {
 		TransformObject wholeSceneTransform = new TransformObject(transform);
 		fboRootGameObject.getGameObjectData().attachGameObjectNode(wholeSceneTransform);
 
-		Transform textTransform = transformBuilder
-				.setPosition(new Vec3f(0, 10, 0))
-				.setScale(Vec3f.ONE.scale(100)).build();
-
 		transformBuilder.reset();
 
 		GeometryBuilder meshGroupLight = new GeometryBuilder("BASIC_MODEL")
@@ -345,8 +340,6 @@ public class Examples {
 				.setInvertedNormals(false)
 				.setTransform(transformBuilder
 						.setScale(Vec3f.ONE).build());
-
-
 
 		LightingBuilder directionalLight = new LightingBuilder("DirectionalLight")
 				.setLightingType(LightingType.DIRECTIONAL)
@@ -357,6 +350,9 @@ public class Examples {
 		Creation.CreateAxis(wholeSceneTransform);
 		Creation.CreateLight(directionalLight, wholeSceneTransform, new Vec3f(0.0f, -10.0f, 0), Vec3f.ONE.scale(0.5f), QuaternionF.Identity, meshGroupLight);
 
+
+		SkyBoxObject skyBoxObject = new SkyBoxObject("/textures/skyBox.jpg", SkyboxType.MODEL, transformBuilder.setScale(100).build());
+		fboRootGameObject.getGameObjectData().attachGameObjectNode(skyBoxObject);
 
 		CameraBuilder cameraBuilder = new CameraBuilder("fboCamera")
 				.setCameraObjectType(CameraObjectType.FBO)
@@ -379,6 +375,7 @@ public class Examples {
 		fboOneGameObjects.add(fboRootGameObject);
 
 
+		return cameraTransformGameObject;
 	}
 
 	public void renderingToFBOs() {
@@ -388,7 +385,7 @@ public class Examples {
 
 		ArrayList<GameObject> fboOneGameObjects = new ArrayList<>();
 
-		createFboGameObjects(fboOneGameObjects);
+		TransformObject fboCameraTransformObject = createFboGameObjects(fboOneGameObjects);
 
 		ArrayList<GameObject> mainGameObjects = new ArrayList<>();
 
@@ -429,10 +426,20 @@ public class Examples {
 				
 		TransformObject cameraTransformGameObject = new TransformObject(cameraTransform);
 		wholeSceneTransform.getGameObjectData().attachGameObjectNode(cameraTransformGameObject);
-		DirectTransformController directTransformController = new DirectTransformController(cameraTransformGameObject, true, true, 0.01f, 1);
+		DirectTransformController directTransformController = new DirectTransformController(cameraTransformGameObject, true, true, 0.005f, 0.1f);
 		CameraObject cameraObject = new CameraObject(cameraBuilder);
 		cameraTransformGameObject.getGameObjectData().attachGameObjectNode(cameraObject);
 
+
+		DirectTransformController fboDirectTransformController = new DirectTransformController(fboCameraTransformObject, true, true, 0.005f, 0.1f);
+		fboDirectTransformController.changeDefaultKeyMapping(new KeyMapping(
+				265,
+				264,
+				263,
+				262,
+				266,
+				267
+		));
 
 		Vec3f ambientLight = new Vec3f(0.9f, 0.9f, 0.9f);
 		Vec3f skyboxAmbientLight = new Vec3f(0.9f, 0.9f, 0.9f);
@@ -476,6 +483,8 @@ public class Examples {
 				wip.build(),
 				directTransformController,
 				layeredGameObjectsMap);
+
+		gameLoop.getInputSystem().addControl(fboDirectTransformController);
 
 		gameLoop.getExecutorService().execute(gameLoop::render);
 		gameLoop.getExecutorService().execute(gameLoop::update);
@@ -704,6 +713,7 @@ public class Examples {
 
 		PickingSubscribable pickingSubscribable = new PickingSubscribable(gameObjects);
 		gameLoop.getGameBus().register(pickingSubscribable);
+		gameLoop.getExecutorService().execute(pickingSubscribable);
 
 	}
 
@@ -821,7 +831,7 @@ public class Examples {
 
 		TransformObject cameraTransformGameObject = new TransformObject(cameraTransform);
 		rootGameObject.getGameObjectData().attachGameObjectNode(cameraTransformGameObject);
-		DirectTransformController directTransformController = new DirectTransformController(cameraTransformGameObject, true, true, 0.01f, 1);
+		DirectTransformController directTransformController = new DirectTransformController(cameraTransformGameObject, true, true, 0.005f, 0.5f);
 		CameraObject cameraObject = new CameraObject(cameraBuilder);
 		cameraTransformGameObject.getGameObjectData().attachGameObjectNode(cameraObject);
 		gameObjects.add(rootGameObject);

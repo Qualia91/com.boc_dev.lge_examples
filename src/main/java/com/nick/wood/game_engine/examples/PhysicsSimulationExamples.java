@@ -38,10 +38,10 @@ class PhysicsSimulationExamples {
 
 	public static void main(String[] args) {
 		PhysicsSimulationExamples physicsSimulationExamples = new PhysicsSimulationExamples();
-		//physicsSimulationExamples.twoBalls();
+		physicsSimulationExamples.twoBalls();
 		//physicsSimulationExamples.twoLinesInteracting();
 		//physicsSimulationExamples.randomBox();
-		physicsSimulationExamples.bigBangBox();
+		//physicsSimulationExamples.bigBangBox();
 	}
 
 	public void twoBalls() {
@@ -73,7 +73,7 @@ class PhysicsSimulationExamples {
 				.setInvertedNormals(false)
 				.setTexture("/textures/mars.jpg")
 				.setTransform(transformBuilder
-						.setScale(0.35f).build());
+						.setScale(0.4f).build());
 
 		GeometryGameObject physicsObMeshOne = new GeometryGameObject(
 				physModel
@@ -95,7 +95,7 @@ class PhysicsSimulationExamples {
 
 
 		TransformObject axisTransform = new TransformObject(transformBuilder.reset().build());
-		Creation.CreateAxis(axisTransform);
+		//Creation.CreateAxis(axisTransform);
 		Creation.CreateLight(directionalLight, axisTransform, new Vec3f(0.0f, 0.0f, 10), Vec3f.ONE.scale(0.5f), QuaternionF.Identity, meshGroupLight);
 		gameObjects.add(axisTransform);
 
@@ -114,12 +114,12 @@ class PhysicsSimulationExamples {
 		gameObjects.add(cameraTransformGameObject);
 		CameraObject cameraObject = new CameraObject(cameraBuilder);
 		cameraTransformGameObject.getGameObjectData().attachGameObjectNode(cameraObject);
-		DirectTransformController directTransformController = new DirectTransformController(cameraTransformGameObject, true, true, 0.01f, 1);
+		DirectTransformController directTransformController = new DirectTransformController(cameraTransformGameObject, true, true, 0.01f, 0.5f);
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
 		wip.setLockCursor(true);
 
-		Vec3f ambientLight = new Vec3f(0.0529f, 0.0808f, 0.0922f);
+		Vec3f ambientLight = new Vec3f(0.529f, 0.808f, 0.922f);
 		Vec3f skyboxAmbientLight = new Vec3f(0.9f, 0.9f, 0.9f);
 		Fog fog = new Fog(true, ambientLight, 0.0001f);
 
