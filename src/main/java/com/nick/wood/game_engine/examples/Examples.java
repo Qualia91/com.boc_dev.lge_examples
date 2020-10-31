@@ -1,45 +1,31 @@
 package com.nick.wood.game_engine.examples;
 
 import com.nick.wood.game_engine.core.GameLoop;
-import com.nick.wood.game_engine.core.PickingSubscribable;
-import com.nick.wood.game_engine.event_bus.event_data.PressEventData;
-import com.nick.wood.game_engine.event_bus.event_types.ControlEventType;
-import com.nick.wood.game_engine.event_bus.events.ControlEvent;
-import com.nick.wood.game_engine.model.game_objects.*;
-import com.nick.wood.game_engine.model.object_builders.CameraBuilder;
-import com.nick.wood.game_engine.model.object_builders.GeometryBuilder;
-import com.nick.wood.game_engine.model.object_builders.LightingBuilder;
-import com.nick.wood.game_engine.model.types.CameraObjectType;
-import com.nick.wood.game_engine.model.types.GeometryType;
-import com.nick.wood.game_engine.model.types.LightingType;
-import com.nick.wood.game_engine.model.types.SkyboxType;
-import com.nick.wood.game_engine.model.utils.Creation;
-import com.nick.wood.game_engine.model.utils.GameObjectUtils;
-import com.nick.wood.game_engine.systems.GESystem;
+import com.nick.wood.game_engine.event_bus.busses.GameBus;
+import com.nick.wood.game_engine.event_bus.subscribables.DebugSubscribable;
+import com.nick.wood.game_engine.gcs_model.gcs.Component;
+import com.nick.wood.game_engine.gcs_model.gcs.Registry;
+import com.nick.wood.game_engine.gcs_model.gcs.RegistryUpdater;
+import com.nick.wood.game_engine.gcs_model.generated.components.*;
+import com.nick.wood.game_engine.gcs_model.generated.enums.CameraObjectType;
+import com.nick.wood.game_engine.gcs_model.generated.enums.TextureType;
+import com.nick.wood.game_engine.gcs_model.systems.GcsSystem;
+import com.nick.wood.game_engine.gcs_model.systems.TestGcsSystem;
 import com.nick.wood.game_engine.systems.control.DirectTransformController;
-import com.nick.wood.game_engine.systems.control.KeyMapping;
-import com.nick.wood.game_engine.systems.generation.Cell;
-import com.nick.wood.game_engine.systems.generation.RecursiveBackTracker;
-import com.nick.wood.game_engine.systems.generation.TerrainGeneration;
-import com.nick.wood.game_engine.systems.generation.WaterGeneration;
 import com.nick.wood.graphics_library.Shader;
+import com.nick.wood.graphics_library.WindowInitialisationParameters;
 import com.nick.wood.graphics_library.WindowInitialisationParametersBuilder;
 import com.nick.wood.graphics_library.lighting.Fog;
-import com.nick.wood.graphics_library.lighting.PointLight;
-import com.nick.wood.graphics_library.objects.Camera;
 import com.nick.wood.graphics_library.objects.render_scene.Scene;
-import com.nick.wood.maths.noise.Perlin2Df;
-import com.nick.wood.maths.noise.Perlin3D;
 import com.nick.wood.maths.objects.QuaternionF;
 import com.nick.wood.maths.objects.matrix.Matrix4f;
 import com.nick.wood.maths.objects.srt.Transform;
 import com.nick.wood.maths.objects.srt.TransformBuilder;
-import com.nick.wood.maths.objects.vector.Vec2i;
 import com.nick.wood.maths.objects.vector.Vec3f;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Examples {
 
@@ -51,7 +37,7 @@ public class Examples {
 
 	public static void main(String[] args) {
 		Examples examples = new Examples();
-		//examples.basicExample();
+		examples.basicExample();
 		//examples.renderingToFBOs();
 		//examples.infiniteHeightMapTerrain();
 		//examples.picking();
@@ -59,6 +45,154 @@ public class Examples {
 		//examples.maze();
 	}
 
+	public void basicExample() {
+
+		GameBus gameBus = new GameBus();
+		Registry registry = new Registry(gameBus);
+
+		ArrayList<GcsSystem<Component>> gcsSystems = new ArrayList<>();
+		gcsSystems.add((GcsSystem) new TestGcsSystem());
+		RegistryUpdater registryUpdater = new RegistryUpdater(gcsSystems, registry, gameBus);
+
+		TransformBuilder transformBuilder = new TransformBuilder();
+		Transform transform = transformBuilder.build();
+
+		TransformObject transformObject = new TransformObject(
+				registry,
+				"Transform",
+				transform.getScale(),
+				transform.getPosition(),
+				transform.getRotation());
+
+		MaterialObject materialObject = new MaterialObject(
+				registry,
+				"Material",
+				new Vec3f(1, 1, 1),
+				new Vec3f(1, 1, 1),
+				1,
+				1
+		);
+
+		TextureObject textureObjectVisual = new TextureObject(
+				registry,
+				"VisualTextureOne",
+				"/textures/rock.png"
+		);
+
+		NormalMapObject normalMapObject = new NormalMapObject(
+				registry,
+				"NormalTextureOne",
+				"/normalMaps/brickwall_normal.jpg"
+		);
+
+		textureObjectVisual.getUpdater().setParent(materialObject).sendUpdate();
+		normalMapObject.getUpdater().setParent(materialObject).sendUpdate();
+
+		GeometryObject geometryObject = new GeometryObject(
+				registry,
+				"Geometry",
+				transform.getSRT(),
+				materialObject.getUuid(),
+				"/models/sphere.obj"
+		);
+
+		CameraObject cameraObject = new CameraObject(
+				registry,
+				"Camera",
+				1000,
+				CameraObjectType.PRIMARY,
+				1000,
+				1,
+				800,
+				1.22f
+		);
+
+		Transform cameraTransform = transformBuilder
+				.setPosition(new Vec3f(-50, 0, 0))
+				.setScale(Vec3f.ONE)
+				.setRotation(cameraRotation).build();
+
+		TransformObject cameraTransformObject = new TransformObject(
+				registry,
+				"CameraTransform",
+				cameraTransform.getScale(),
+				cameraTransform.getPosition(),
+				cameraTransform.getRotation());
+
+		ControllableObject controllableObject = new ControllableObject(
+				registry,
+				"Camera controller",
+				0.01f,
+				true,
+				1,
+				true);
+
+
+		for (int i = 0; i < 1; i++) {
+
+
+			Transform build = transformBuilder.reset().setPosition(new Vec3f(i, 0, 0)).build();
+
+
+			TransformObject newTransformObject = new TransformObject(
+					registry,
+					"TransformObject" + i,
+					build.getScale(),
+					build.getPosition(),
+					build.getRotation());
+
+			GeometryObject newGeometryObject = new GeometryObject(
+					registry,
+					"Geometry" + i,
+					Matrix4f.Identity,
+					materialObject.getUuid(),
+					"/models/sphere.obj"
+			);
+			newGeometryObject.getUpdater().setParent(newTransformObject).sendUpdate();
+
+		}
+
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		geometryObject.getUpdater().setParent(transformObject).sendUpdate();
+		materialObject.getUpdater().setParent(geometryObject).sendUpdate();
+
+
+		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
+		wip.setLockCursor(true);
+
+		Vec3f ambientLight = new Vec3f(0.5f, 0.5f, 0.5f);
+		Vec3f skyboxAmbientLight = new Vec3f(0.9f, 0.9f, 0.9f);
+		Fog fog = new Fog(true, ambientLight, 0.0001f);
+
+		Scene mainScene = new Scene(
+				"MAIN",
+				new Shader("/shaders/mainVertex.glsl", "/shaders/mainFragment.glsl"),
+				new Shader("/shaders/waterVertex.glsl", "/shaders/waterFragment.glsl"),
+				new Shader("/shaders/skyboxVertex.glsl", "/shaders/skyboxFragment.glsl"),
+				new Shader("/shaders/pickingVertex.glsl", "/shaders/pickingFragment.glsl"),
+				new Shader("/shaders/terrainVertex.glsl", "/shaders/terrainFragment.glsl"),
+				fog,
+				ambientLight,
+				skyboxAmbientLight
+		);
+
+		ArrayList<Scene> sceneLayers = new ArrayList<>();
+		sceneLayers.add(mainScene);
+
+		GameLoop gameLoop = new GameLoop(
+				sceneLayers,
+				wip.build(),
+				registryUpdater,
+				gameBus
+		);
+
+		gameLoop.start();
+
+
+	}
+
+/*
 	public void basicExample() {
 		ArrayList<GameObject> gameObjects = new ArrayList<>();
 
@@ -176,10 +310,14 @@ public class Examples {
 		ArrayList<Scene> sceneLayers = new ArrayList<>();
 		sceneLayers.add(mainScene);
 
+		GameBus gameBus = new GameBus();
+
+		Registry registry = new Registry(gameBus);
+
 		GameLoop gameLoop = new GameLoop(sceneLayers,
 				wip.build(),
 				directTransformController,
-				layeredGameObjectsMap) {
+				registry) {
 		};
 
 		gameLoop.getExecutorService().execute(gameLoop::update);
@@ -197,7 +335,7 @@ public class Examples {
 
 		GroupObject rootGameObject = new GroupObject();
 
-		int size = 500;
+		int size = 50;
 
 		LightingBuilder directionalLight = new LightingBuilder("DirectionalLight")
 				.setLightingType(LightingType.DIRECTIONAL)
@@ -213,7 +351,7 @@ public class Examples {
 		Transform cameraTransform = new TransformBuilder()
 				.setPosition(new Vec3f(0, 0, 5000))
 				.setScale(Vec3f.ONE)
-				.setRotation(cameraRotation)
+				.setRotation(QuaternionF.RotationZ(Math.PI/4).multiply(cameraRotation))
 				.build();
 				
 		TransformObject cameraTransformObj = new TransformObject(cameraTransform);
@@ -225,7 +363,7 @@ public class Examples {
 				.setFar(10_000_000);
 		CameraObject cameraObject = new CameraObject(cameraBuilder);
 		cameraTransformObj.getGameObjectData().attachGameObjectNode(cameraObject);
-		DirectTransformController directTransformController = new DirectTransformController(cameraTransformObj, true, true, 0.001f, 100);
+		DirectTransformController directTransformController = new DirectTransformController(cameraTransformObj, true, true, 0.001f, 50);
 
 		Transform transform = new TransformBuilder()
 				.setScale(5_000_000)
@@ -241,13 +379,6 @@ public class Examples {
 		rootGameObject.getGameObjectData().attachGameObjectNode(water);
 
 		ArrayList<TerrainTextureGameObject> terrainTextureGameObjects = new ArrayList<>();
-
-		terrainTextureGameObjects.add(new TerrainTextureGameObject(
-				0,
-				100,
-				"/textures/sand.jpg",
-				"/normalMaps/sandNormalMap.jpg"
-		));
 
 		terrainTextureGameObjects.add(new TerrainTextureGameObject(
 				200,
@@ -313,8 +444,8 @@ public class Examples {
 				layeredGameObjectsMap);
 
 		ArrayList<GESystem> geSystems = gameLoop.getGESystems();
-		geSystems.add(new TerrainGeneration(100));
-		geSystems.add(new WaterGeneration(100));
+		geSystems.add(new TerrainGeneration(10));
+		geSystems.add(new WaterGeneration(10));
 
 		gameLoop.getExecutorService().execute(gameLoop::render);
 		gameLoop.getExecutorService().execute(gameLoop::update);
@@ -607,7 +738,7 @@ public class Examples {
 
 	}
 */
-
+/*
 	public void picking() {
 
 		ArrayList<GameObject> gameObjects = new ArrayList<>();
@@ -935,7 +1066,7 @@ public class Examples {
 		}
 	}
 */
-
+/*
 	public void maze() {
 		ArrayList<GameObject> gameObjects = new ArrayList<>();
 
@@ -1114,5 +1245,5 @@ public class Examples {
 		gameLoop.getExecutorService().execute(gameLoop::render);
 		gameLoop.getExecutorService().execute(gameLoop::update);
 	}
-
+*/
 }
