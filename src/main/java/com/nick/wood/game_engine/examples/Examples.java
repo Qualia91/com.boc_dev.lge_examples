@@ -2,18 +2,14 @@ package com.nick.wood.game_engine.examples;
 
 import com.nick.wood.game_engine.core.GameLoop;
 import com.nick.wood.game_engine.event_bus.busses.GameBus;
-import com.nick.wood.game_engine.event_bus.subscribables.DebugSubscribable;
 import com.nick.wood.game_engine.gcs_model.gcs.Component;
 import com.nick.wood.game_engine.gcs_model.gcs.Registry;
 import com.nick.wood.game_engine.gcs_model.gcs.RegistryUpdater;
 import com.nick.wood.game_engine.gcs_model.generated.components.*;
 import com.nick.wood.game_engine.gcs_model.generated.enums.CameraObjectType;
-import com.nick.wood.game_engine.gcs_model.generated.enums.TextureType;
 import com.nick.wood.game_engine.gcs_model.systems.GcsSystem;
-import com.nick.wood.game_engine.gcs_model.systems.TestGcsSystem;
-import com.nick.wood.game_engine.systems.control.DirectTransformController;
+import com.nick.wood.game_engine.systems.TestGcsSystem;
 import com.nick.wood.graphics_library.Shader;
-import com.nick.wood.graphics_library.WindowInitialisationParameters;
 import com.nick.wood.graphics_library.WindowInitialisationParametersBuilder;
 import com.nick.wood.graphics_library.lighting.Fog;
 import com.nick.wood.graphics_library.objects.render_scene.Scene;
@@ -24,8 +20,6 @@ import com.nick.wood.maths.objects.srt.TransformBuilder;
 import com.nick.wood.maths.objects.vector.Vec3f;
 
 import java.util.ArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class Examples {
 
