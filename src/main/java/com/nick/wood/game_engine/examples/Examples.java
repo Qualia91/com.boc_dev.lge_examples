@@ -9,6 +9,7 @@ import com.nick.wood.game_engine.gcs_model.generated.components.*;
 import com.nick.wood.game_engine.gcs_model.generated.enums.CameraObjectType;
 import com.nick.wood.game_engine.gcs_model.systems.GcsSystem;
 import com.nick.wood.game_engine.systems.TestGcsSystem;
+import com.nick.wood.game_engine.systems.boids.BoidSystem;
 import com.nick.wood.graphics_library.Shader;
 import com.nick.wood.graphics_library.WindowInitialisationParametersBuilder;
 import com.nick.wood.graphics_library.lighting.Fog;
@@ -20,6 +21,7 @@ import com.nick.wood.maths.objects.srt.TransformBuilder;
 import com.nick.wood.maths.objects.vector.Vec3f;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 public class Examples {
 
@@ -45,7 +47,7 @@ public class Examples {
 		Registry registry = new Registry(gameBus);
 
 		ArrayList<GcsSystem<Component>> gcsSystems = new ArrayList<>();
-		gcsSystems.add((GcsSystem) new TestGcsSystem());
+		gcsSystems.add((GcsSystem) new BoidSystem());
 		RegistryUpdater registryUpdater = new RegistryUpdater(gcsSystems, registry, gameBus);
 
 		TransformBuilder transformBuilder = new TransformBuilder();
@@ -93,11 +95,11 @@ public class Examples {
 		CameraObject cameraObject = new CameraObject(
 				registry,
 				"Camera",
-				1000,
+				1920 ,
 				CameraObjectType.PRIMARY,
-				1000,
+				10000,
 				1,
-				800,
+				1080,
 				1.22f
 		);
 
@@ -122,10 +124,12 @@ public class Examples {
 				true);
 
 
-		for (int i = 0; i < 1; i++) {
+		Random random = new Random();
+
+		for (int i = 0; i < 1000; i++) {
 
 
-			Transform build = transformBuilder.reset().setPosition(new Vec3f(i, 0, 0)).build();
+			Transform build = transformBuilder.reset().setPosition(new Vec3f(i % 100, (1000 - i) % 100, 0)).build();
 
 
 			TransformObject newTransformObject = new TransformObject(
@@ -142,7 +146,24 @@ public class Examples {
 					materialObject.getUuid(),
 					"/models/sphere.obj"
 			);
+
+			BoidObject boidObject = new BoidObject(
+					registry,
+					"Boid" + i,
+					new Vec3f(random.nextInt(10) - 5, random.nextInt(10) - 5, random.nextInt(10) - 5),
+					10,
+					4000,
+					4,
+					0.001f,
+					0.001f,
+					0.001f,
+					0.1f,
+					100,
+					2,
+					Vec3f.ZERO
+			);
 			newGeometryObject.getUpdater().setParent(newTransformObject).sendUpdate();
+			boidObject.getUpdater().setParent(newTransformObject).sendUpdate();
 
 		}
 
@@ -153,7 +174,7 @@ public class Examples {
 
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
-		wip.setLockCursor(true);
+		wip.setLockCursor(true).setWindowWidth(1000).setWindowHeight(800);
 
 		Vec3f ambientLight = new Vec3f(0.5f, 0.5f, 0.5f);
 		Vec3f skyboxAmbientLight = new Vec3f(0.9f, 0.9f, 0.9f);
