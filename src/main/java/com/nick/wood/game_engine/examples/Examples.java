@@ -47,18 +47,10 @@ public class Examples {
 		Registry registry = new Registry(gameBus);
 
 		ArrayList<GcsSystem<Component>> gcsSystems = new ArrayList<>();
-		gcsSystems.add((GcsSystem) new BoidSystem());
+//		gcsSystems.add((GcsSystem) new BoidSystem());
 		RegistryUpdater registryUpdater = new RegistryUpdater(gcsSystems, registry, gameBus);
 
 		TransformBuilder transformBuilder = new TransformBuilder();
-		Transform transform = transformBuilder.build();
-
-		TransformObject transformObject = new TransformObject(
-				registry,
-				"Transform",
-				transform.getScale(),
-				transform.getPosition(),
-				transform.getRotation());
 
 		MaterialObject materialObject = new MaterialObject(
 				registry,
@@ -83,14 +75,6 @@ public class Examples {
 
 		textureObjectVisual.getUpdater().setParent(materialObject).sendUpdate();
 		normalMapObject.getUpdater().setParent(materialObject).sendUpdate();
-
-		GeometryObject geometryObject = new GeometryObject(
-				registry,
-				"Geometry",
-				transform.getSRT(),
-				materialObject.getUuid(),
-				"/models/sphere.obj"
-		);
 
 		CameraObject cameraObject = new CameraObject(
 				registry,
@@ -123,58 +107,61 @@ public class Examples {
 				1,
 				true);
 
-
 		Random random = new Random();
 
-		for (int i = 0; i < 1000; i++) {
+		for (int i = 0; i < 5; i++) {
+
+			for (int j = 0; j < 5; j++) {
+
+				for (int k = 0; k < 5; k++) {
 
 
-			Transform build = transformBuilder.reset().setPosition(new Vec3f(i % 100, (1000 - i) % 100, 0)).build();
+					Transform build = transformBuilder.reset().setPosition(new Vec3f(i*4, j*4, k*4)).build();
 
 
-			TransformObject newTransformObject = new TransformObject(
-					registry,
-					"TransformObject" + i,
-					build.getScale(),
-					build.getPosition(),
-					build.getRotation());
+					TransformObject newTransformObject = new TransformObject(
+							registry,
+							"TransformObject" + i,
+							build.getScale(),
+							build.getPosition(),
+							build.getRotation());
 
-			GeometryObject newGeometryObject = new GeometryObject(
-					registry,
-					"Geometry" + i,
-					Matrix4f.Identity,
-					materialObject.getUuid(),
-					"/models/sphere.obj"
-			);
+					GeometryObject newGeometryObject = new GeometryObject(
+							registry,
+							"Geometry" + i,
+							Matrix4f.Identity,
+							materialObject.getUuid(),
+							"/models/sphere.obj"
+					);
 
-			BoidObject boidObject = new BoidObject(
-					registry,
-					"Boid" + i,
-					new Vec3f(random.nextInt(10) - 5, random.nextInt(10) - 5, random.nextInt(10) - 5),
-					10,
-					4000,
-					4,
-					0.001f,
-					0.001f,
-					0.001f,
-					0.1f,
-					100,
-					2,
-					Vec3f.ZERO
-			);
-			newGeometryObject.getUpdater().setParent(newTransformObject).sendUpdate();
-			boidObject.getUpdater().setParent(newTransformObject).sendUpdate();
+					BoidObject boidObject = new BoidObject(
+							registry,
+							"Boid" + i,
+							new Vec3f(random.nextInt(10) - 5, random.nextInt(10) - 5, random.nextInt(10) - 5),
+							5,
+							4000,
+							8,
+							0.05f,
+							0.001f,
+							0.001f,
+							0.1f,
+							10,
+							2,
+							Vec3f.ZERO
+					);
+					newGeometryObject.getUpdater().setParent(newTransformObject).sendUpdate();
+					boidObject.getUpdater().setParent(newTransformObject).sendUpdate();
 
+				}
+			}
 		}
 
 		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
-		geometryObject.getUpdater().setParent(transformObject).sendUpdate();
-		materialObject.getUpdater().setParent(geometryObject).sendUpdate();
 
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
-		wip.setLockCursor(true).setWindowWidth(1000).setWindowHeight(800);
+		wip.setLockCursor(true).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
 
 		Vec3f ambientLight = new Vec3f(0.5f, 0.5f, 0.5f);
 		Vec3f skyboxAmbientLight = new Vec3f(0.9f, 0.9f, 0.9f);
