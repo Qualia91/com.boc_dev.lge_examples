@@ -2,7 +2,7 @@
 //
 //import com.nick.wood.game_engine.model.game_objects.*;
 //import com.nick.wood.game_engine.model.utils.Creation;
-//import com.nick.wood.graphics_library.lighting.PointLight;
+//import com.nick.wood.graphics_library.objects.lighting.PointLight;
 //import com.nick.wood.graphics_library.objects.Camera;
 //import com.nick.wood.graphics_library.objects.mesh_objects.MeshBuilder;
 //import com.nick.wood.graphics_library.objects.mesh_objects.MeshObject;

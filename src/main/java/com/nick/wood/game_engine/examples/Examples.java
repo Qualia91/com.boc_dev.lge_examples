@@ -7,12 +7,13 @@ import com.nick.wood.game_engine.gcs_model.gcs.Registry;
 import com.nick.wood.game_engine.gcs_model.gcs.RegistryUpdater;
 import com.nick.wood.game_engine.gcs_model.generated.components.*;
 import com.nick.wood.game_engine.gcs_model.generated.enums.CameraObjectType;
+import com.nick.wood.game_engine.gcs_model.generated.enums.LightingType;
+import com.nick.wood.game_engine.gcs_model.generated.enums.SkyboxType;
 import com.nick.wood.game_engine.gcs_model.systems.GcsSystem;
-import com.nick.wood.game_engine.systems.TestGcsSystem;
 import com.nick.wood.game_engine.systems.boids.BoidSystem;
 import com.nick.wood.graphics_library.Shader;
 import com.nick.wood.graphics_library.WindowInitialisationParametersBuilder;
-import com.nick.wood.graphics_library.lighting.Fog;
+import com.nick.wood.graphics_library.objects.lighting.Fog;
 import com.nick.wood.graphics_library.objects.render_scene.Scene;
 import com.nick.wood.maths.objects.QuaternionF;
 import com.nick.wood.maths.objects.matrix.Matrix4f;
@@ -47,7 +48,8 @@ public class Examples {
 		Registry registry = new Registry(gameBus);
 
 		ArrayList<GcsSystem<Component>> gcsSystems = new ArrayList<>();
-//		gcsSystems.add((GcsSystem) new BoidSystem());
+		gcsSystems.add((GcsSystem) new BoidSystem());
+//		gcsSystems.add((GcsSystem) new TestGcsSystem());
 		RegistryUpdater registryUpdater = new RegistryUpdater(gcsSystems, registry, gameBus);
 
 		TransformBuilder transformBuilder = new TransformBuilder();
@@ -64,7 +66,7 @@ public class Examples {
 		TextureObject textureObjectVisual = new TextureObject(
 				registry,
 				"VisualTextureOne",
-				"/textures/rock.png"
+				"/textures/brickwall.jpg"
 		);
 
 		NormalMapObject normalMapObject = new NormalMapObject(
@@ -88,7 +90,7 @@ public class Examples {
 		);
 
 		Transform cameraTransform = transformBuilder
-				.setPosition(new Vec3f(-50, 0, 0))
+				.setPosition(new Vec3f(-200, 0, 0))
 				.setScale(Vec3f.ONE)
 				.setRotation(cameraRotation).build();
 
@@ -104,16 +106,50 @@ public class Examples {
 				"Camera controller",
 				0.01f,
 				true,
-				1,
+				5,
 				true);
+
+		LightObject lightObject = new LightObject(
+				registry,
+				"MyFirstLight",
+				0.25f,
+				0.2f,
+				0.5f,
+				1,
+				Vec3f.X,
+				LightingType.SPOT,
+				Vec3f.Z.neg(),
+				10000
+		);
+
+		LightObject directionalObject = new LightObject(
+				registry,
+				"MyFirstLight",
+				0.25f,
+				1,
+				0.5f,
+				1,
+				new Vec3f(0.529f, 0.808f, 0.922f),
+				LightingType.DIRECTIONAL,
+				Vec3f.Z.neg(),
+				3
+		);
+
+		SkyBoxObject skyBoxObject = new SkyBoxObject(
+				registry,
+				"SKY_BOX",
+				SkyboxType.SPHERE,
+				5000,
+				"textures/bw_gradient_skybox.png"
+		);
 
 		Random random = new Random();
 
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < 10; i++) {
 
-			for (int j = 0; j < 5; j++) {
+			for (int j = 0; j < 10; j++) {
 
-				for (int k = 0; k < 5; k++) {
+				for (int k = 0; k < 10; k++) {
 
 
 					Transform build = transformBuilder.reset().setPosition(new Vec3f(i*4, j*4, k*4)).build();
@@ -131,21 +167,21 @@ public class Examples {
 							"Geometry" + i,
 							Matrix4f.Identity,
 							materialObject.getUuid(),
-							"/models/sphere.obj"
+							"DEFAULT_CUBE"
 					);
 
 					BoidObject boidObject = new BoidObject(
 							registry,
 							"Boid" + i,
 							new Vec3f(random.nextInt(10) - 5, random.nextInt(10) - 5, random.nextInt(10) - 5),
-							5,
+							10,
 							4000,
 							8,
 							0.05f,
 							0.001f,
 							0.001f,
 							0.1f,
-							10,
+							20,
 							2,
 							Vec3f.ZERO
 					);
@@ -156,14 +192,14 @@ public class Examples {
 			}
 		}
 
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
-
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
 		wip.setLockCursor(true).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
 
-		Vec3f ambientLight = new Vec3f(0.5f, 0.5f, 0.5f);
+		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
 		Vec3f skyboxAmbientLight = new Vec3f(0.9f, 0.9f, 0.9f);
 		Fog fog = new Fog(true, ambientLight, 0.0001f);
 
