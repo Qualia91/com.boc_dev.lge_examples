@@ -11,6 +11,7 @@ import com.nick.wood.game_engine.gcs_model.generated.enums.LightingType;
 import com.nick.wood.game_engine.gcs_model.generated.enums.SkyboxType;
 import com.nick.wood.game_engine.gcs_model.systems.GcsSystem;
 import com.nick.wood.game_engine.systems.boids.BoidSystem;
+import com.nick.wood.game_engine.systems.generation.TerrainGeneration;
 import com.nick.wood.graphics_library.Shader;
 import com.nick.wood.graphics_library.WindowInitialisationParametersBuilder;
 import com.nick.wood.graphics_library.objects.lighting.Fog;
@@ -35,6 +36,7 @@ public class Examples {
 	public static void main(String[] args) {
 		Examples examples = new Examples();
 		examples.basicExample();
+		//examples.boidsExample();
 		//examples.renderingToFBOs();
 		//examples.infiniteHeightMapTerrain();
 		//examples.picking();
@@ -43,6 +45,184 @@ public class Examples {
 	}
 
 	public void basicExample() {
+
+		GameBus gameBus = new GameBus();
+		Registry registry = new Registry(gameBus);
+
+		ArrayList<GcsSystem<Component>> gcsSystems = new ArrayList<>();
+//		gcsSystems.add((GcsSystem) new BoidSystem());
+//		gcsSystems.add((GcsSystem) new TestGcsSystem());
+		gcsSystems.add((GcsSystem) new TerrainGeneration());
+		RegistryUpdater registryUpdater = new RegistryUpdater(gcsSystems, registry, gameBus);
+
+		TransformBuilder transformBuilder = new TransformBuilder();
+
+		MaterialObject materialObject = new MaterialObject(
+				registry,
+				"Material",
+				new Vec3f(1, 1, 1),
+				new Vec3f(1, 1, 1),
+				1,
+				1
+		);
+
+		TextureObject textureObjectVisual = new TextureObject(
+				registry,
+				"VisualTextureOne",
+				"/textures/brickwall.jpg"
+		);
+
+		NormalMapObject normalMapObject = new NormalMapObject(
+				registry,
+				"NormalTextureOne",
+				"/normalMaps/brickwall_normal.jpg"
+		);
+
+		textureObjectVisual.getUpdater().setParent(materialObject).sendUpdate();
+		normalMapObject.getUpdater().setParent(materialObject).sendUpdate();
+
+		MaterialObject terrainMaterialObject = new MaterialObject(
+				registry,
+				"TerrainMaterial",
+				new Vec3f(1, 1, 1),
+				new Vec3f(1, 1, 1),
+				1,
+				1
+		);
+
+		TextureObject terrainTextureObjectVisual = new TextureObject(
+				registry,
+				"VisualTextureTwo",
+				"/textures/terrain.jpg"
+		);
+
+		NormalMapObject terrainNormalMapObject = new NormalMapObject(
+				registry,
+				"NormalTextureTwo",
+				"/normalMaps/sandNormalMap.jpg"
+		);
+
+		terrainTextureObjectVisual.getUpdater().setParent(terrainMaterialObject).sendUpdate();
+		terrainNormalMapObject.getUpdater().setParent(terrainMaterialObject).sendUpdate();
+
+		CameraObject cameraObject = new CameraObject(
+				registry,
+				"Camera",
+				1920 ,
+				CameraObjectType.PRIMARY,
+				10000,
+				1,
+				1080,
+				1.22f
+		);
+
+		Transform cameraTransform = transformBuilder
+				.setPosition(new Vec3f(-50, 0, 0))
+				.setScale(Vec3f.ONE)
+				.setRotation(cameraRotation).build();
+
+		TransformObject cameraTransformObject = new TransformObject(
+				registry,
+				"CameraTransform",
+				cameraTransform.getScale(),
+				cameraTransform.getPosition(),
+				cameraTransform.getRotation());
+
+		ControllableObject controllableObject = new ControllableObject(
+				registry,
+				"Camera controller",
+				0.01f,
+				true,
+				1,
+				true);
+
+		TerrainGenerationObject terrainGenerationObject = new TerrainGenerationObject(
+				registry,
+				"TerrainGenerationObject",
+				5,
+				1,
+				1.7f,
+				terrainMaterialObject.getUuid(),
+				50,
+				31,
+				10,
+				10
+		);
+
+		LightObject lightObject = new LightObject(
+				registry,
+				"MyFirstLight",
+				0.25f,
+				0.2f,
+				0.5f,
+				1,
+				Vec3f.X,
+				LightingType.SPOT,
+				Vec3f.Z.neg(),
+				10000
+		);
+
+		LightObject directionalObject = new LightObject(
+				registry,
+				"MyFirstLight",
+				0.25f,
+				1,
+				0.5f,
+				1,
+				new Vec3f(0.529f, 0.808f, 0.922f),
+				LightingType.DIRECTIONAL,
+				Vec3f.Z.neg().add(Vec3f.X),
+				1
+		);
+
+		SkyBoxObject skyBoxObject = new SkyBoxObject(
+				registry,
+				"SKY_BOX",
+				SkyboxType.SPHERE,
+				5000,
+				"textures/bw_gradient_skybox.png"
+		);
+
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		terrainGenerationObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
+		wip.setLockCursor(true).setWindowWidth(800).setWindowHeight(600).setDebug(true);
+
+		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
+		Vec3f skyboxAmbientLight = new Vec3f(0.9f, 0.9f, 0.9f);
+		Fog fog = new Fog(true, ambientLight, 0.0001f);
+
+		Scene mainScene = new Scene(
+				"MAIN",
+				new Shader("/shaders/mainVertex.glsl", "/shaders/mainFragment.glsl"),
+				new Shader("/shaders/waterVertex.glsl", "/shaders/waterFragment.glsl"),
+				new Shader("/shaders/skyboxVertex.glsl", "/shaders/skyboxFragment.glsl"),
+				new Shader("/shaders/pickingVertex.glsl", "/shaders/pickingFragment.glsl"),
+				new Shader("/shaders/terrainVertex.glsl", "/shaders/terrainFragment.glsl"),
+				fog,
+				ambientLight,
+				skyboxAmbientLight
+		);
+
+		ArrayList<Scene> sceneLayers = new ArrayList<>();
+		sceneLayers.add(mainScene);
+
+		GameLoop gameLoop = new GameLoop(
+				sceneLayers,
+				wip.build(),
+				registryUpdater,
+				gameBus
+		);
+
+		gameLoop.start();
+
+
+	}
+
+	public void boidsExample() {
 
 		GameBus gameBus = new GameBus();
 		Registry registry = new Registry(gameBus);
@@ -90,7 +270,7 @@ public class Examples {
 		);
 
 		Transform cameraTransform = transformBuilder
-				.setPosition(new Vec3f(-200, 0, 0))
+				.setPosition(new Vec3f(-300, 0, 0))
 				.setScale(Vec3f.ONE)
 				.setRotation(cameraRotation).build();
 
@@ -167,7 +347,7 @@ public class Examples {
 							"Geometry" + i,
 							Matrix4f.Identity,
 							materialObject.getUuid(),
-							"DEFAULT_CUBE"
+							"DEFAULT_SPHERE"
 					);
 
 					BoidObject boidObject = new BoidObject(
@@ -197,7 +377,8 @@ public class Examples {
 		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
-		wip.setLockCursor(true).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
+		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setDebug(true);
+		wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
 
 		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
 		Vec3f skyboxAmbientLight = new Vec3f(0.9f, 0.9f, 0.9f);
