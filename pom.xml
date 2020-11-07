@@ -11,18 +11,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.nick.wood.game_engine.model</groupId>
-            <artifactId>com.nick.wood.game_engine.model</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.nick.wood.game_engine.control</groupId>
-            <artifactId>com.nick.wood.game_engine.control</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>com.nick.wood.maths</groupId>
             <artifactId>com.nick.wood.maths</artifactId>
             <version>1.0-SNAPSHOT</version>

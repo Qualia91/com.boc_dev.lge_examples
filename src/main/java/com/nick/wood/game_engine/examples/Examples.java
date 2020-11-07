@@ -1,6 +1,7 @@
 package com.nick.wood.game_engine.examples;
 
 import com.nick.wood.game_engine.core.GameLoop;
+import com.nick.wood.game_engine.core.SceneLayer;
 import com.nick.wood.game_engine.event_bus.busses.GameBus;
 import com.nick.wood.game_engine.gcs_model.gcs.Component;
 import com.nick.wood.game_engine.gcs_model.gcs.Registry;
@@ -37,9 +38,9 @@ public class Examples {
 
 	public static void main(String[] args) {
 		Examples examples = new Examples();
-		//examples.basicExample();
+		examples.basicExample();
 		//examples.boidsExample();
-		examples.meshTypeConversionExample();
+		//examples.meshTypeConversionExample();
 		//examples.instancedRenderingExample();
 		//examples.renderingToFBOs();
 		//examples.infiniteHeightMapTerrain();
@@ -49,6 +50,180 @@ public class Examples {
 	}
 
 	public void basicExample() {
+
+		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
+		Fog fog = new Fog(true, ambientLight, 0.0001f);
+
+		SceneLayer mainSceneLayer = new SceneLayer(
+				"MAIN",
+				ambientLight,
+				fog
+		);
+
+		TransformBuilder transformBuilder = new TransformBuilder();
+
+		MaterialObject materialObject = new MaterialObject(
+				mainSceneLayer.getRegistry(),
+				"Material",
+				new Vec3f(1, 1, 1),
+				new Vec3f(1, 1, 1),
+				1,
+				1
+		);
+
+		TextureObject textureObjectVisual = new TextureObject(
+				mainSceneLayer.getRegistry(),
+				"VisualTextureOne",
+				"/textures/brickwall.jpg"
+		);
+
+		NormalMapObject normalMapObject = new NormalMapObject(
+				mainSceneLayer.getRegistry(),
+				"NormalTextureOne",
+				"/normalMaps/brickwall_normal.jpg"
+		);
+
+		textureObjectVisual.getUpdater().setParent(materialObject).sendUpdate();
+		normalMapObject.getUpdater().setParent(materialObject).sendUpdate();
+
+		CameraObject cameraObject = new CameraObject(
+				mainSceneLayer.getRegistry(),
+				"Camera",
+				1920 ,
+				CameraObjectType.PRIMARY,
+				10000,
+				1,
+				1080,
+				1.22f
+		);
+
+		Transform cameraTransform = transformBuilder
+				.setPosition(new Vec3f(-50, 0, 0))
+				.setScale(Vec3f.ONE)
+				.setRotation(cameraRotation).build();
+
+		TransformObject cameraTransformObject = new TransformObject(
+				mainSceneLayer.getRegistry(),
+				"CameraTransform",
+				cameraTransform.getScale(),
+				cameraTransform.getPosition(),
+				cameraTransform.getRotation());
+
+		ControllableObject controllableObject = new ControllableObject(
+				mainSceneLayer.getRegistry(),
+				"Camera controller",
+				0.01f,
+				true,
+				1,
+				true);
+
+		LightObject lightObject = new LightObject(
+				mainSceneLayer.getRegistry(),
+				"MyFirstLight",
+				0.25f,
+				0.2f,
+				0.5f,
+				1,
+				Vec3f.X,
+				LightingType.SPOT,
+				Vec3f.Z.neg(),
+				10000
+		);
+
+		LightObject directionalObject = new LightObject(
+				mainSceneLayer.getRegistry(),
+				"MyFirstLight",
+				0.25f,
+				1,
+				0.5f,
+				1,
+				new Vec3f(0.529f, 0.808f, 0.922f),
+				LightingType.DIRECTIONAL,
+				Vec3f.Z.neg().add(Vec3f.X),
+				1
+		);
+
+		SkyBoxObject skyBoxObject = new SkyBoxObject(
+				mainSceneLayer.getRegistry(),
+				"SKY_BOX",
+				SkyboxType.SPHERE,
+				5000,
+				"textures/bw_gradient_skybox.png"
+		);
+
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
+		wip.setLockCursor(true).setWindowWidth(800).setWindowHeight(600).setDebug(true);
+
+
+		////// gui layer ///////
+
+		SceneLayer guiSceneLayer = new SceneLayer(
+				"GUI",
+				Vec3f.ONE,
+				fog
+		);
+
+		TransformObject newTransformObject = new TransformObject(
+				guiSceneLayer.getRegistry(),
+				"TransformObjectGui",
+				Vec3f.ONE,
+				Vec3f.ZERO,
+				QuaternionF.Identity);
+
+		GeometryObject newGeometryObject = new GeometryObject(
+				guiSceneLayer.getRegistry(),
+				"GeometryGui",
+				Matrix4f.Identity,
+				materialObject.getUuid(),
+				"DEFAULT_SPHERE"
+		);
+
+		CameraObject hudCameraObject = new CameraObject(
+				guiSceneLayer.getRegistry(),
+				"Camera",
+				1920 ,
+				CameraObjectType.PRIMARY,
+				10000,
+				1,
+				1080,
+				1.22f
+		);
+
+		Transform hudTransform = transformBuilder
+				.setPosition(new Vec3f(-10, 0, 0))
+				.setScale(Vec3f.ONE)
+				.setRotation(cameraRotation).build();
+
+		TransformObject hudCameraTransformObject = new TransformObject(
+				guiSceneLayer.getRegistry(),
+				"CameraTransform",
+				hudTransform.getScale(),
+				hudTransform.getPosition(),
+				hudTransform.getRotation());
+
+		hudCameraObject.getUpdater().setParent(hudCameraTransformObject).sendUpdate();
+
+		newGeometryObject.getUpdater().setParent(newTransformObject).sendUpdate();
+
+		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
+		sceneLayers.add(mainSceneLayer);
+		sceneLayers.add(guiSceneLayer);
+
+		GameLoop gameLoop = new GameLoop(
+				sceneLayers,
+				wip.build()
+		);
+
+		gameLoop.start();
+
+
+	}
+/*
+	public void terrainGenerationExample() {
 
 		GameBus gameBus = new GameBus();
 		Registry registry = new Registry(gameBus);
@@ -753,7 +928,7 @@ public class Examples {
 
 
 	}
-
+*/
 /*
 	public void basicExample() {
 		ArrayList<GameObject> gameObjects = new ArrayList<>();
