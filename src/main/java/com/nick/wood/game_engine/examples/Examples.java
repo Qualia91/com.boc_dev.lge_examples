@@ -10,6 +10,8 @@ import com.nick.wood.game_engine.gcs_model.generated.enums.CameraObjectType;
 import com.nick.wood.game_engine.gcs_model.generated.enums.LightingType;
 import com.nick.wood.game_engine.gcs_model.generated.enums.SkyboxType;
 import com.nick.wood.game_engine.gcs_model.systems.GcsSystem;
+import com.nick.wood.game_engine.systems.MeshAddSystem;
+import com.nick.wood.game_engine.systems.MeshRemoveSystem;
 import com.nick.wood.game_engine.systems.boids.BoidSystem;
 import com.nick.wood.game_engine.systems.generation.TerrainGeneration;
 import com.nick.wood.graphics_library.Shader;
@@ -35,8 +37,10 @@ public class Examples {
 
 	public static void main(String[] args) {
 		Examples examples = new Examples();
-		examples.basicExample();
+		//examples.basicExample();
 		//examples.boidsExample();
+		examples.meshTypeConversionExample();
+		//examples.instancedRenderingExample();
 		//examples.renderingToFBOs();
 		//examples.infiniteHeightMapTerrain();
 		//examples.picking();
@@ -379,6 +383,345 @@ public class Examples {
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
 		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setDebug(true);
 		wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
+
+		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
+		Vec3f skyboxAmbientLight = new Vec3f(0.9f, 0.9f, 0.9f);
+		Fog fog = new Fog(true, ambientLight, 0.0001f);
+
+		Scene mainScene = new Scene(
+				"MAIN",
+				new Shader("/shaders/mainVertex.glsl", "/shaders/mainFragment.glsl"),
+				new Shader("/shaders/waterVertex.glsl", "/shaders/waterFragment.glsl"),
+				new Shader("/shaders/skyboxVertex.glsl", "/shaders/skyboxFragment.glsl"),
+				new Shader("/shaders/pickingVertex.glsl", "/shaders/pickingFragment.glsl"),
+				new Shader("/shaders/terrainVertex.glsl", "/shaders/terrainFragment.glsl"),
+				fog,
+				ambientLight,
+				skyboxAmbientLight
+		);
+
+		ArrayList<Scene> sceneLayers = new ArrayList<>();
+		sceneLayers.add(mainScene);
+
+		GameLoop gameLoop = new GameLoop(
+				sceneLayers,
+				wip.build(),
+				registryUpdater,
+				gameBus
+		);
+
+		gameLoop.start();
+
+
+	}
+
+	public void meshTypeConversionExample() {
+
+		GameBus gameBus = new GameBus();
+		Registry registry = new Registry(gameBus);
+
+		ArrayList<GcsSystem<Component>> gcsSystems = new ArrayList<>();
+		gcsSystems.add((GcsSystem) new MeshAddSystem());
+		gcsSystems.add((GcsSystem) new MeshRemoveSystem());
+		RegistryUpdater registryUpdater = new RegistryUpdater(gcsSystems, registry, gameBus);
+
+		TransformBuilder transformBuilder = new TransformBuilder();
+
+		MaterialObject materialObject = new MaterialObject(
+				registry,
+				"Material",
+				new Vec3f(1, 1, 1),
+				new Vec3f(1, 1, 1),
+				1,
+				1
+		);
+
+		TextureObject textureObjectVisual = new TextureObject(
+				registry,
+				"VisualTextureOne",
+				"/textures/brickwall.jpg"
+		);
+
+		NormalMapObject normalMapObject = new NormalMapObject(
+				registry,
+				"NormalTextureOne",
+				"/normalMaps/brickwall_normal.jpg"
+		);
+
+		textureObjectVisual.getUpdater().setParent(materialObject).sendUpdate();
+		normalMapObject.getUpdater().setParent(materialObject).sendUpdate();
+
+		CameraObject cameraObject = new CameraObject(
+				registry,
+				"Camera",
+				1920 ,
+				CameraObjectType.PRIMARY,
+				10000,
+				1,
+				1080,
+				1.22f
+		);
+
+		Transform cameraTransform = transformBuilder
+				.setPosition(new Vec3f(-300, 0, 0))
+				.setScale(Vec3f.ONE)
+				.setRotation(cameraRotation).build();
+
+		TransformObject cameraTransformObject = new TransformObject(
+				registry,
+				"CameraTransform",
+				cameraTransform.getScale(),
+				cameraTransform.getPosition(),
+				cameraTransform.getRotation());
+
+		ControllableObject controllableObject = new ControllableObject(
+				registry,
+				"Camera controller",
+				0.01f,
+				false,
+				2,
+				true);
+
+		LightObject lightObject = new LightObject(
+				registry,
+				"MyFirstLight",
+				0.25f,
+				0.2f,
+				0.5f,
+				1,
+				Vec3f.X,
+				LightingType.SPOT,
+				Vec3f.Z.neg(),
+				10000
+		);
+
+		LightObject directionalObject = new LightObject(
+				registry,
+				"MyFirstLight",
+				0.25f,
+				1,
+				0.5f,
+				1,
+				new Vec3f(0.529f, 0.808f, 0.922f),
+				LightingType.DIRECTIONAL,
+				Vec3f.Z.neg(),
+				3
+		);
+
+		SkyBoxObject skyBoxObject = new SkyBoxObject(
+				registry,
+				"SKY_BOX",
+				SkyboxType.SPHERE,
+				5000,
+				"textures/bw_gradient_skybox.png"
+		);
+
+		for (int i = 0; i < 20; i++) {
+
+			for (int j = 0; j < 20; j++) {
+
+				for (int k = 0; k < 20; k++) {
+
+					Transform build = transformBuilder.reset().setPosition(new Vec3f(i*4, j*4, k*4)).build();
+
+					TransformObject newTransformObject = new TransformObject(
+							registry,
+							"TransformObject" + i,
+							build.getScale(),
+							build.getPosition(),
+							build.getRotation());
+
+					GeometryObject newGeometryObject = new GeometryObject(
+							registry,
+							"Geometry" + i,
+							Matrix4f.Identity,
+							materialObject.getUuid(),
+							"DEFAULT_CUBE"
+					);
+
+					newGeometryObject.getUpdater().setParent(newTransformObject).sendUpdate();
+
+				}
+			}
+		}
+
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
+		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setDebug(true);
+		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
+		wip.setLockCursor(true).setWindowWidth(1200).setWindowHeight(1100).setDebug(true);
+
+		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
+		Vec3f skyboxAmbientLight = new Vec3f(0.9f, 0.9f, 0.9f);
+		Fog fog = new Fog(true, ambientLight, 0.0001f);
+
+		Scene mainScene = new Scene(
+				"MAIN",
+				new Shader("/shaders/mainVertex.glsl", "/shaders/mainFragment.glsl"),
+				new Shader("/shaders/waterVertex.glsl", "/shaders/waterFragment.glsl"),
+				new Shader("/shaders/skyboxVertex.glsl", "/shaders/skyboxFragment.glsl"),
+				new Shader("/shaders/pickingVertex.glsl", "/shaders/pickingFragment.glsl"),
+				new Shader("/shaders/terrainVertex.glsl", "/shaders/terrainFragment.glsl"),
+				fog,
+				ambientLight,
+				skyboxAmbientLight
+		);
+
+		ArrayList<Scene> sceneLayers = new ArrayList<>();
+		sceneLayers.add(mainScene);
+
+		GameLoop gameLoop = new GameLoop(
+				sceneLayers,
+				wip.build(),
+				registryUpdater,
+				gameBus
+		);
+
+		gameLoop.start();
+
+
+	}
+
+	public void instancedRenderingExample() {
+
+		GameBus gameBus = new GameBus();
+		Registry registry = new Registry(gameBus);
+
+		ArrayList<GcsSystem<Component>> gcsSystems = new ArrayList<>();
+		//gcsSystems.add((GcsSystem) new TestGcsSystem());
+		RegistryUpdater registryUpdater = new RegistryUpdater(gcsSystems, registry, gameBus);
+
+		TransformBuilder transformBuilder = new TransformBuilder();
+
+		MaterialObject materialObject = new MaterialObject(
+				registry,
+				"Material",
+				new Vec3f(1, 1, 1),
+				new Vec3f(1, 1, 1),
+				1,
+				1
+		);
+
+		TextureObject textureObjectVisual = new TextureObject(
+				registry,
+				"VisualTextureOne",
+				"/textures/brickwall.jpg"
+		);
+
+		NormalMapObject normalMapObject = new NormalMapObject(
+				registry,
+				"NormalTextureOne",
+				"/normalMaps/brickwall_normal.jpg"
+		);
+
+		textureObjectVisual.getUpdater().setParent(materialObject).sendUpdate();
+		normalMapObject.getUpdater().setParent(materialObject).sendUpdate();
+
+		CameraObject cameraObject = new CameraObject(
+				registry,
+				"Camera",
+				1920 ,
+				CameraObjectType.PRIMARY,
+				10000,
+				1,
+				1080,
+				1.22f
+		);
+
+		Transform cameraTransform = transformBuilder
+				.setPosition(new Vec3f(-300, 0, 0))
+				.setScale(Vec3f.ONE)
+				.setRotation(cameraRotation).build();
+
+		TransformObject cameraTransformObject = new TransformObject(
+				registry,
+				"CameraTransform",
+				cameraTransform.getScale(),
+				cameraTransform.getPosition(),
+				cameraTransform.getRotation());
+
+		ControllableObject controllableObject = new ControllableObject(
+				registry,
+				"Camera controller",
+				0.01f,
+				true,
+				2,
+				true);
+
+		LightObject lightObject = new LightObject(
+				registry,
+				"MyFirstLight",
+				0.25f,
+				0.2f,
+				0.5f,
+				1,
+				Vec3f.X,
+				LightingType.SPOT,
+				Vec3f.Z.neg(),
+				10000
+		);
+
+		LightObject directionalObject = new LightObject(
+				registry,
+				"MyFirstLight",
+				0.25f,
+				1,
+				0.5f,
+				1,
+				new Vec3f(0.529f, 0.808f, 0.922f),
+				LightingType.DIRECTIONAL,
+				Vec3f.Z.neg(),
+				3
+		);
+
+		SkyBoxObject skyBoxObject = new SkyBoxObject(
+				registry,
+				"SKY_BOX",
+				SkyboxType.SPHERE,
+				5000,
+				"textures/bw_gradient_skybox.png"
+		);
+
+		for (int i = 0; i < 60; i++) {
+
+			for (int j = 0; j < 60; j++) {
+
+				for (int k = 0; k < 60; k++) {
+
+					Transform build = transformBuilder.reset().setPosition(new Vec3f(i*4, j*4, k*4)).build();
+
+					TransformObject newTransformObject = new TransformObject(
+							registry,
+							"TransformObject" + i,
+							build.getScale(),
+							build.getPosition(),
+							build.getRotation());
+
+					GeometryObject newGeometryObject = new GeometryObject(
+							registry,
+							"Geometry" + i,
+							Matrix4f.Identity,
+							materialObject.getUuid(),
+							"DEFAULT_CUBE"
+					);
+
+					newGeometryObject.getUpdater().setParent(newTransformObject).sendUpdate();
+
+				}
+			}
+		}
+
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
+		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setDebug(true);
+		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
+		wip.setLockCursor(true).setWindowWidth(800).setWindowHeight(600).setDebug(true);
 
 		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
 		Vec3f skyboxAmbientLight = new Vec3f(0.9f, 0.9f, 0.9f);
