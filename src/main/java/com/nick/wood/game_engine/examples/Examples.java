@@ -38,7 +38,7 @@ public class Examples {
 
 	public static void main(String[] args) {
 		Examples examples = new Examples();
-		examples.basicExample();
+		//examples.basicExample();
 		//examples.boidsExample();
 		//examples.meshTypeConversionExample();
 		//examples.instancedRenderingExample();
@@ -222,22 +222,26 @@ public class Examples {
 
 
 	}
-/*
+
 	public void terrainGenerationExample() {
 
-		GameBus gameBus = new GameBus();
-		Registry registry = new Registry(gameBus);
+		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
+		Fog fog = new Fog(true, ambientLight, 0.0001f);
 
-		ArrayList<GcsSystem<Component>> gcsSystems = new ArrayList<>();
+		SceneLayer mainSceneLayer = new SceneLayer(
+				"MAIN",
+				ambientLight,
+				fog
+		);
+
 //		gcsSystems.add((GcsSystem) new BoidSystem());
 //		gcsSystems.add((GcsSystem) new TestGcsSystem());
-		gcsSystems.add((GcsSystem) new TerrainGeneration());
-		RegistryUpdater registryUpdater = new RegistryUpdater(gcsSystems, registry, gameBus);
+		mainSceneLayer.getGcsSystems().add((GcsSystem) new TerrainGeneration());
 
 		TransformBuilder transformBuilder = new TransformBuilder();
 
 		MaterialObject materialObject = new MaterialObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"Material",
 				new Vec3f(1, 1, 1),
 				new Vec3f(1, 1, 1),
@@ -246,13 +250,13 @@ public class Examples {
 		);
 
 		TextureObject textureObjectVisual = new TextureObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"VisualTextureOne",
 				"/textures/brickwall.jpg"
 		);
 
 		NormalMapObject normalMapObject = new NormalMapObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"NormalTextureOne",
 				"/normalMaps/brickwall_normal.jpg"
 		);
@@ -261,7 +265,7 @@ public class Examples {
 		normalMapObject.getUpdater().setParent(materialObject).sendUpdate();
 
 		MaterialObject terrainMaterialObject = new MaterialObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"TerrainMaterial",
 				new Vec3f(1, 1, 1),
 				new Vec3f(1, 1, 1),
@@ -270,13 +274,13 @@ public class Examples {
 		);
 
 		TextureObject terrainTextureObjectVisual = new TextureObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"VisualTextureTwo",
 				"/textures/terrain.jpg"
 		);
 
 		NormalMapObject terrainNormalMapObject = new NormalMapObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"NormalTextureTwo",
 				"/normalMaps/sandNormalMap.jpg"
 		);
@@ -285,7 +289,7 @@ public class Examples {
 		terrainNormalMapObject.getUpdater().setParent(terrainMaterialObject).sendUpdate();
 
 		CameraObject cameraObject = new CameraObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"Camera",
 				1920 ,
 				CameraObjectType.PRIMARY,
@@ -301,14 +305,14 @@ public class Examples {
 				.setRotation(cameraRotation).build();
 
 		TransformObject cameraTransformObject = new TransformObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"CameraTransform",
 				cameraTransform.getScale(),
 				cameraTransform.getPosition(),
 				cameraTransform.getRotation());
 
 		ControllableObject controllableObject = new ControllableObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"Camera controller",
 				0.01f,
 				true,
@@ -316,7 +320,7 @@ public class Examples {
 				true);
 
 		TerrainGenerationObject terrainGenerationObject = new TerrainGenerationObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"TerrainGenerationObject",
 				5,
 				1,
@@ -329,7 +333,7 @@ public class Examples {
 		);
 
 		LightObject lightObject = new LightObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"MyFirstLight",
 				0.25f,
 				0.2f,
@@ -342,7 +346,7 @@ public class Examples {
 		);
 
 		LightObject directionalObject = new LightObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"MyFirstLight",
 				0.25f,
 				1,
@@ -355,7 +359,7 @@ public class Examples {
 		);
 
 		SkyBoxObject skyBoxObject = new SkyBoxObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"SKY_BOX",
 				SkyboxType.SPHERE,
 				5000,
@@ -370,30 +374,12 @@ public class Examples {
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
 		wip.setLockCursor(true).setWindowWidth(800).setWindowHeight(600).setDebug(true);
 
-		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
-		Vec3f skyboxAmbientLight = new Vec3f(0.9f, 0.9f, 0.9f);
-		Fog fog = new Fog(true, ambientLight, 0.0001f);
-
-		Scene mainScene = new Scene(
-				"MAIN",
-				new Shader("/shaders/mainVertex.glsl", "/shaders/mainFragment.glsl"),
-				new Shader("/shaders/waterVertex.glsl", "/shaders/waterFragment.glsl"),
-				new Shader("/shaders/skyboxVertex.glsl", "/shaders/skyboxFragment.glsl"),
-				new Shader("/shaders/pickingVertex.glsl", "/shaders/pickingFragment.glsl"),
-				new Shader("/shaders/terrainVertex.glsl", "/shaders/terrainFragment.glsl"),
-				fog,
-				ambientLight,
-				skyboxAmbientLight
-		);
-
-		ArrayList<Scene> sceneLayers = new ArrayList<>();
-		sceneLayers.add(mainScene);
+		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
+		sceneLayers.add(mainSceneLayer);
 
 		GameLoop gameLoop = new GameLoop(
 				sceneLayers,
-				wip.build(),
-				registryUpdater,
-				gameBus
+				wip.build()
 		);
 
 		gameLoop.start();
@@ -403,18 +389,21 @@ public class Examples {
 
 	public void boidsExample() {
 
-		GameBus gameBus = new GameBus();
-		Registry registry = new Registry(gameBus);
+		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
+		Fog fog = new Fog(true, ambientLight, 0.0001f);
 
-		ArrayList<GcsSystem<Component>> gcsSystems = new ArrayList<>();
-		gcsSystems.add((GcsSystem) new BoidSystem());
-//		gcsSystems.add((GcsSystem) new TestGcsSystem());
-		RegistryUpdater registryUpdater = new RegistryUpdater(gcsSystems, registry, gameBus);
+		SceneLayer mainSceneLayer = new SceneLayer(
+				"MAIN",
+				ambientLight,
+				fog
+		);
+
+		mainSceneLayer.getGcsSystems().add((GcsSystem) new BoidSystem());
 
 		TransformBuilder transformBuilder = new TransformBuilder();
 
 		MaterialObject materialObject = new MaterialObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"Material",
 				new Vec3f(1, 1, 1),
 				new Vec3f(1, 1, 1),
@@ -423,13 +412,13 @@ public class Examples {
 		);
 
 		TextureObject textureObjectVisual = new TextureObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"VisualTextureOne",
 				"/textures/brickwall.jpg"
 		);
 
 		NormalMapObject normalMapObject = new NormalMapObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"NormalTextureOne",
 				"/normalMaps/brickwall_normal.jpg"
 		);
@@ -438,7 +427,7 @@ public class Examples {
 		normalMapObject.getUpdater().setParent(materialObject).sendUpdate();
 
 		CameraObject cameraObject = new CameraObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"Camera",
 				1920 ,
 				CameraObjectType.PRIMARY,
@@ -454,14 +443,14 @@ public class Examples {
 				.setRotation(cameraRotation).build();
 
 		TransformObject cameraTransformObject = new TransformObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"CameraTransform",
 				cameraTransform.getScale(),
 				cameraTransform.getPosition(),
 				cameraTransform.getRotation());
 
 		ControllableObject controllableObject = new ControllableObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"Camera controller",
 				0.01f,
 				true,
@@ -469,7 +458,7 @@ public class Examples {
 				true);
 
 		LightObject lightObject = new LightObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"MyFirstLight",
 				0.25f,
 				0.2f,
@@ -482,7 +471,7 @@ public class Examples {
 		);
 
 		LightObject directionalObject = new LightObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"MyFirstLight",
 				0.25f,
 				1,
@@ -495,7 +484,7 @@ public class Examples {
 		);
 
 		SkyBoxObject skyBoxObject = new SkyBoxObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"SKY_BOX",
 				SkyboxType.SPHERE,
 				5000,
@@ -515,14 +504,14 @@ public class Examples {
 
 
 					TransformObject newTransformObject = new TransformObject(
-							registry,
+							mainSceneLayer.getRegistry(),
 							"TransformObject" + i,
 							build.getScale(),
 							build.getPosition(),
 							build.getRotation());
 
 					GeometryObject newGeometryObject = new GeometryObject(
-							registry,
+							mainSceneLayer.getRegistry(),
 							"Geometry" + i,
 							Matrix4f.Identity,
 							materialObject.getUuid(),
@@ -530,7 +519,7 @@ public class Examples {
 					);
 
 					BoidObject boidObject = new BoidObject(
-							registry,
+							mainSceneLayer.getRegistry(),
 							"Boid" + i,
 							new Vec3f(random.nextInt(10) - 5, random.nextInt(10) - 5, random.nextInt(10) - 5),
 							10,
@@ -559,30 +548,12 @@ public class Examples {
 		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setDebug(true);
 		wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
 
-		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
-		Vec3f skyboxAmbientLight = new Vec3f(0.9f, 0.9f, 0.9f);
-		Fog fog = new Fog(true, ambientLight, 0.0001f);
-
-		Scene mainScene = new Scene(
-				"MAIN",
-				new Shader("/shaders/mainVertex.glsl", "/shaders/mainFragment.glsl"),
-				new Shader("/shaders/waterVertex.glsl", "/shaders/waterFragment.glsl"),
-				new Shader("/shaders/skyboxVertex.glsl", "/shaders/skyboxFragment.glsl"),
-				new Shader("/shaders/pickingVertex.glsl", "/shaders/pickingFragment.glsl"),
-				new Shader("/shaders/terrainVertex.glsl", "/shaders/terrainFragment.glsl"),
-				fog,
-				ambientLight,
-				skyboxAmbientLight
-		);
-
-		ArrayList<Scene> sceneLayers = new ArrayList<>();
-		sceneLayers.add(mainScene);
+		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
+		sceneLayers.add(mainSceneLayer);
 
 		GameLoop gameLoop = new GameLoop(
 				sceneLayers,
-				wip.build(),
-				registryUpdater,
-				gameBus
+				wip.build()
 		);
 
 		gameLoop.start();
@@ -592,18 +563,22 @@ public class Examples {
 
 	public void meshTypeConversionExample() {
 
-		GameBus gameBus = new GameBus();
-		Registry registry = new Registry(gameBus);
+		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
+		Fog fog = new Fog(true, ambientLight, 0.0001f);
 
-		ArrayList<GcsSystem<Component>> gcsSystems = new ArrayList<>();
-		gcsSystems.add((GcsSystem) new MeshAddSystem());
-		gcsSystems.add((GcsSystem) new MeshRemoveSystem());
-		RegistryUpdater registryUpdater = new RegistryUpdater(gcsSystems, registry, gameBus);
+		SceneLayer mainSceneLayer = new SceneLayer(
+				"MAIN",
+				ambientLight,
+				fog
+		);
+
+		mainSceneLayer.getGcsSystems().add((GcsSystem) new MeshAddSystem());
+		mainSceneLayer.getGcsSystems().add((GcsSystem) new MeshRemoveSystem());
 
 		TransformBuilder transformBuilder = new TransformBuilder();
 
 		MaterialObject materialObject = new MaterialObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"Material",
 				new Vec3f(1, 1, 1),
 				new Vec3f(1, 1, 1),
@@ -612,13 +587,13 @@ public class Examples {
 		);
 
 		TextureObject textureObjectVisual = new TextureObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"VisualTextureOne",
 				"/textures/brickwall.jpg"
 		);
 
 		NormalMapObject normalMapObject = new NormalMapObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"NormalTextureOne",
 				"/normalMaps/brickwall_normal.jpg"
 		);
@@ -627,7 +602,7 @@ public class Examples {
 		normalMapObject.getUpdater().setParent(materialObject).sendUpdate();
 
 		CameraObject cameraObject = new CameraObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"Camera",
 				1920 ,
 				CameraObjectType.PRIMARY,
@@ -643,14 +618,14 @@ public class Examples {
 				.setRotation(cameraRotation).build();
 
 		TransformObject cameraTransformObject = new TransformObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"CameraTransform",
 				cameraTransform.getScale(),
 				cameraTransform.getPosition(),
 				cameraTransform.getRotation());
 
 		ControllableObject controllableObject = new ControllableObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"Camera controller",
 				0.01f,
 				false,
@@ -658,7 +633,7 @@ public class Examples {
 				true);
 
 		LightObject lightObject = new LightObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"MyFirstLight",
 				0.25f,
 				0.2f,
@@ -671,7 +646,7 @@ public class Examples {
 		);
 
 		LightObject directionalObject = new LightObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"MyFirstLight",
 				0.25f,
 				1,
@@ -684,7 +659,7 @@ public class Examples {
 		);
 
 		SkyBoxObject skyBoxObject = new SkyBoxObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"SKY_BOX",
 				SkyboxType.SPHERE,
 				5000,
@@ -700,14 +675,14 @@ public class Examples {
 					Transform build = transformBuilder.reset().setPosition(new Vec3f(i*4, j*4, k*4)).build();
 
 					TransformObject newTransformObject = new TransformObject(
-							registry,
+							mainSceneLayer.getRegistry(),
 							"TransformObject" + i,
 							build.getScale(),
 							build.getPosition(),
 							build.getRotation());
 
 					GeometryObject newGeometryObject = new GeometryObject(
-							registry,
+							mainSceneLayer.getRegistry(),
 							"Geometry" + i,
 							Matrix4f.Identity,
 							materialObject.getUuid(),
@@ -729,30 +704,12 @@ public class Examples {
 		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
 		wip.setLockCursor(true).setWindowWidth(1200).setWindowHeight(1100).setDebug(true);
 
-		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
-		Vec3f skyboxAmbientLight = new Vec3f(0.9f, 0.9f, 0.9f);
-		Fog fog = new Fog(true, ambientLight, 0.0001f);
-
-		Scene mainScene = new Scene(
-				"MAIN",
-				new Shader("/shaders/mainVertex.glsl", "/shaders/mainFragment.glsl"),
-				new Shader("/shaders/waterVertex.glsl", "/shaders/waterFragment.glsl"),
-				new Shader("/shaders/skyboxVertex.glsl", "/shaders/skyboxFragment.glsl"),
-				new Shader("/shaders/pickingVertex.glsl", "/shaders/pickingFragment.glsl"),
-				new Shader("/shaders/terrainVertex.glsl", "/shaders/terrainFragment.glsl"),
-				fog,
-				ambientLight,
-				skyboxAmbientLight
-		);
-
-		ArrayList<Scene> sceneLayers = new ArrayList<>();
-		sceneLayers.add(mainScene);
+		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
+		sceneLayers.add(mainSceneLayer);
 
 		GameLoop gameLoop = new GameLoop(
 				sceneLayers,
-				wip.build(),
-				registryUpdater,
-				gameBus
+				wip.build()
 		);
 
 		gameLoop.start();
@@ -762,17 +719,19 @@ public class Examples {
 
 	public void instancedRenderingExample() {
 
-		GameBus gameBus = new GameBus();
-		Registry registry = new Registry(gameBus);
+		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
+		Fog fog = new Fog(true, ambientLight, 0.0001f);
 
-		ArrayList<GcsSystem<Component>> gcsSystems = new ArrayList<>();
-		//gcsSystems.add((GcsSystem) new TestGcsSystem());
-		RegistryUpdater registryUpdater = new RegistryUpdater(gcsSystems, registry, gameBus);
+		SceneLayer mainSceneLayer = new SceneLayer(
+				"MAIN",
+				ambientLight,
+				fog
+		);
 
 		TransformBuilder transformBuilder = new TransformBuilder();
 
 		MaterialObject materialObject = new MaterialObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"Material",
 				new Vec3f(1, 1, 1),
 				new Vec3f(1, 1, 1),
@@ -781,13 +740,13 @@ public class Examples {
 		);
 
 		TextureObject textureObjectVisual = new TextureObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"VisualTextureOne",
 				"/textures/brickwall.jpg"
 		);
 
 		NormalMapObject normalMapObject = new NormalMapObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"NormalTextureOne",
 				"/normalMaps/brickwall_normal.jpg"
 		);
@@ -796,7 +755,7 @@ public class Examples {
 		normalMapObject.getUpdater().setParent(materialObject).sendUpdate();
 
 		CameraObject cameraObject = new CameraObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"Camera",
 				1920 ,
 				CameraObjectType.PRIMARY,
@@ -812,14 +771,14 @@ public class Examples {
 				.setRotation(cameraRotation).build();
 
 		TransformObject cameraTransformObject = new TransformObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"CameraTransform",
 				cameraTransform.getScale(),
 				cameraTransform.getPosition(),
 				cameraTransform.getRotation());
 
 		ControllableObject controllableObject = new ControllableObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"Camera controller",
 				0.01f,
 				true,
@@ -827,7 +786,7 @@ public class Examples {
 				true);
 
 		LightObject lightObject = new LightObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"MyFirstLight",
 				0.25f,
 				0.2f,
@@ -840,7 +799,7 @@ public class Examples {
 		);
 
 		LightObject directionalObject = new LightObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"MyFirstLight",
 				0.25f,
 				1,
@@ -853,7 +812,7 @@ public class Examples {
 		);
 
 		SkyBoxObject skyBoxObject = new SkyBoxObject(
-				registry,
+				mainSceneLayer.getRegistry(),
 				"SKY_BOX",
 				SkyboxType.SPHERE,
 				5000,
@@ -869,14 +828,14 @@ public class Examples {
 					Transform build = transformBuilder.reset().setPosition(new Vec3f(i*4, j*4, k*4)).build();
 
 					TransformObject newTransformObject = new TransformObject(
-							registry,
+							mainSceneLayer.getRegistry(),
 							"TransformObject" + i,
 							build.getScale(),
 							build.getPosition(),
 							build.getRotation());
 
 					GeometryObject newGeometryObject = new GeometryObject(
-							registry,
+							mainSceneLayer.getRegistry(),
 							"Geometry" + i,
 							Matrix4f.Identity,
 							materialObject.getUuid(),
@@ -898,37 +857,20 @@ public class Examples {
 		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
 		wip.setLockCursor(true).setWindowWidth(800).setWindowHeight(600).setDebug(true);
 
-		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
-		Vec3f skyboxAmbientLight = new Vec3f(0.9f, 0.9f, 0.9f);
-		Fog fog = new Fog(true, ambientLight, 0.0001f);
 
-		Scene mainScene = new Scene(
-				"MAIN",
-				new Shader("/shaders/mainVertex.glsl", "/shaders/mainFragment.glsl"),
-				new Shader("/shaders/waterVertex.glsl", "/shaders/waterFragment.glsl"),
-				new Shader("/shaders/skyboxVertex.glsl", "/shaders/skyboxFragment.glsl"),
-				new Shader("/shaders/pickingVertex.glsl", "/shaders/pickingFragment.glsl"),
-				new Shader("/shaders/terrainVertex.glsl", "/shaders/terrainFragment.glsl"),
-				fog,
-				ambientLight,
-				skyboxAmbientLight
-		);
-
-		ArrayList<Scene> sceneLayers = new ArrayList<>();
-		sceneLayers.add(mainScene);
+		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
+		sceneLayers.add(mainSceneLayer);
 
 		GameLoop gameLoop = new GameLoop(
 				sceneLayers,
-				wip.build(),
-				registryUpdater,
-				gameBus
+				wip.build()
 		);
 
 		gameLoop.start();
 
 
 	}
-*/
+
 /*
 	public void basicExample() {
 		ArrayList<GameObject> gameObjects = new ArrayList<>();
