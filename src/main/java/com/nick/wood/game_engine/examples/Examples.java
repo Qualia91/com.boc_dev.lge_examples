@@ -67,9 +67,9 @@ public class Examples {
 				mainSceneLayer.getRegistry(),
 				"Material",
 				new Vec3f(1, 1, 1),
-				new Vec3f(1, 1, 1),
 				1,
-				1
+				1,
+                new Vec3f(1, 1, 1)
 		);
 
 		TextureObject textureObjectVisual = new TextureObject(
@@ -90,13 +90,13 @@ public class Examples {
 		CameraObject cameraObject = new CameraObject(
 				mainSceneLayer.getRegistry(),
 				"Camera",
-				1920 ,
-				CameraObjectType.PRIMARY,
-				10000,
-				1,
-				CameraProjectionType.PERSPECTIVE,
-				1080,
-				1.22f
+                CameraProjectionType.PERSPECTIVE,
+                CameraObjectType.PRIMARY,
+                10000,
+                1.22f,
+                1,
+                1080,
+				1920
 		);
 
 		Transform cameraTransform = transformBuilder
@@ -107,50 +107,50 @@ public class Examples {
 		TransformObject cameraTransformObject = new TransformObject(
 				mainSceneLayer.getRegistry(),
 				"CameraTransform",
-				cameraTransform.getScale(),
-				cameraTransform.getPosition(),
-				cameraTransform.getRotation());
+                cameraTransform.getPosition(),
+                cameraTransform.getRotation(),
+				cameraTransform.getScale());
 
 		ControllableObject controllableObject = new ControllableObject(
 				mainSceneLayer.getRegistry(),
 				"Camera controller",
+                true,
+                true,
 				0.01f,
-				true,
-				1,
-				true);
+				1);
 		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 
 		LightObject lightObject = new LightObject(
 				mainSceneLayer.getRegistry(),
 				"MyFirstLight",
 				0.25f,
-				0.2f,
 				0.5f,
-				1,
+				1f,
 				Vec3f.X,
-				LightingType.SPOT,
+				0.2f,
 				Vec3f.Z.neg(),
-				10000
+				10000,
+                LightingType.SPOT
 		);
 
 		LightObject directionalObject = new LightObject(
 				mainSceneLayer.getRegistry(),
-				"MyFirstLight",
-				0.25f,
-				1,
-				0.5f,
-				1,
-				new Vec3f(0.529f, 0.808f, 0.922f),
-				LightingType.DIRECTIONAL,
-				Vec3f.Z.neg().add(Vec3f.X),
-				1
+                "MySecondLight",
+                0.25f,
+                0.5f,
+                1f,
+                new Vec3f(0.529f, 0.808f, 0.922f),
+                0.2f,
+                Vec3f.Z.neg().add(Vec3f.X),
+                10000,
+                LightingType.DIRECTIONAL
 		);
 
 		SkyBoxObject skyBoxObject = new SkyBoxObject(
 				mainSceneLayer.getRegistry(),
 				"SKY_BOX",
-				SkyboxType.SPHERE,
 				5000,
+                SkyboxType.SPHERE,
 				"textures/bw_gradient_skybox.png"
 		);
 
@@ -173,8 +173,8 @@ public class Examples {
 							mainSceneLayer.getRegistry(),
 							"TransformObject" + i,
 							build.getScale(),
-							build.getPosition(),
-							build.getRotation());
+							build.getRotation(),
+							build.getPosition());
 
 					GeometryObject newGeometryObject = new GeometryObject(
 							mainSceneLayer.getRegistry(),
