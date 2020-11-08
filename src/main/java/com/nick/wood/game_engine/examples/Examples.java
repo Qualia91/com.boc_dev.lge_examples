@@ -38,7 +38,7 @@ public class Examples {
 
 	public static void main(String[] args) {
 		Examples examples = new Examples();
-		//examples.basicExample();
+		examples.basicExample();
 		//examples.boidsExample();
 		//examples.meshTypeConversionExample();
 		//examples.instancedRenderingExample();
