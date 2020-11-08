@@ -8,6 +8,7 @@ import com.nick.wood.game_engine.gcs_model.gcs.Registry;
 import com.nick.wood.game_engine.gcs_model.gcs.RegistryUpdater;
 import com.nick.wood.game_engine.gcs_model.generated.components.*;
 import com.nick.wood.game_engine.gcs_model.generated.enums.CameraObjectType;
+import com.nick.wood.game_engine.gcs_model.generated.enums.CameraProjectionType;
 import com.nick.wood.game_engine.gcs_model.generated.enums.LightingType;
 import com.nick.wood.game_engine.gcs_model.generated.enums.SkyboxType;
 import com.nick.wood.game_engine.gcs_model.systems.GcsSystem;
@@ -93,12 +94,13 @@ public class Examples {
 				CameraObjectType.PRIMARY,
 				10000,
 				1,
+				CameraProjectionType.PERSPECTIVE,
 				1080,
 				1.22f
 		);
 
 		Transform cameraTransform = transformBuilder
-				.setPosition(new Vec3f(-50, 0, 0))
+				.setPosition(new Vec3f(-100, 0, 0))
 				.setScale(Vec3f.ONE)
 				.setRotation(cameraRotation).build();
 
@@ -116,6 +118,7 @@ public class Examples {
 				true,
 				1,
 				true);
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 
 		LightObject lightObject = new LightObject(
 				mainSceneLayer.getRegistry(),
@@ -153,7 +156,55 @@ public class Examples {
 
 		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
-		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		Random random = new Random();
+
+		for (int i = 0; i < 10; i++) {
+
+			for (int j = 0; j < 10; j++) {
+
+				for (int k = 0; k < 10; k++) {
+
+
+					Transform build = transformBuilder.reset().setPosition(new Vec3f(i*4, j*4, k*4)).build();
+
+
+					TransformObject newTransformObject = new TransformObject(
+							mainSceneLayer.getRegistry(),
+							"TransformObject" + i,
+							build.getScale(),
+							build.getPosition(),
+							build.getRotation());
+
+					GeometryObject newGeometryObject = new GeometryObject(
+							mainSceneLayer.getRegistry(),
+							"Geometry" + i,
+							Matrix4f.Identity,
+							materialObject.getUuid(),
+							"DEFAULT_SPHERE"
+					);
+
+					BoidObject boidObject = new BoidObject(
+							mainSceneLayer.getRegistry(),
+							"Boid" + i,
+							new Vec3f(random.nextInt(10) - 5, random.nextInt(10) - 5, random.nextInt(10) - 5),
+							10,
+							4000,
+							8,
+							0.05f,
+							0.001f,
+							0.001f,
+							0.1f,
+							20,
+							2,
+							Vec3f.ZERO
+					);
+					newGeometryObject.getUpdater().setParent(newTransformObject).sendUpdate();
+					boidObject.getUpdater().setParent(newTransformObject).sendUpdate();
+
+				}
+			}
+		}
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
 		wip.setLockCursor(true).setWindowWidth(800).setWindowHeight(600).setDebug(true);
@@ -171,7 +222,7 @@ public class Examples {
 				guiSceneLayer.getRegistry(),
 				"TransformObjectGui",
 				Vec3f.ONE,
-				Vec3f.ZERO,
+				new Vec3f(0, 0, 0),
 				QuaternionF.Identity);
 
 		GeometryObject newGeometryObject = new GeometryObject(
@@ -179,24 +230,26 @@ public class Examples {
 				"GeometryGui",
 				Matrix4f.Identity,
 				materialObject.getUuid(),
-				"DEFAULT_SPHERE"
+				"DEFAULT_CUBE"
 		);
 
 		CameraObject hudCameraObject = new CameraObject(
 				guiSceneLayer.getRegistry(),
 				"Camera",
-				1920 ,
+				100000 ,
 				CameraObjectType.PRIMARY,
-				10000,
-				1,
-				1080,
+				1000,
+				0.1f,
+				CameraProjectionType.ORTHOGRAPHIC,
+				100000,
 				1.22f
 		);
 
 		Transform hudTransform = transformBuilder
-				.setPosition(new Vec3f(-10, 0, 0))
-				.setScale(Vec3f.ONE)
-				.setRotation(cameraRotation).build();
+				.setPosition(new Vec3f(0, 0, 0))
+				.setScale(Vec3f.ONE.scale(100))
+				.setRotation(cameraRotation)
+				.build();
 
 		TransformObject hudCameraTransformObject = new TransformObject(
 				guiSceneLayer.getRegistry(),
@@ -204,6 +257,7 @@ public class Examples {
 				hudTransform.getScale(),
 				hudTransform.getPosition(),
 				hudTransform.getRotation());
+
 
 		hudCameraObject.getUpdater().setParent(hudCameraTransformObject).sendUpdate();
 
@@ -295,6 +349,7 @@ public class Examples {
 				CameraObjectType.PRIMARY,
 				10000,
 				1,
+				CameraProjectionType.PERSPECTIVE,
 				1080,
 				1.22f
 		);
@@ -433,6 +488,7 @@ public class Examples {
 				CameraObjectType.PRIMARY,
 				10000,
 				1,
+				CameraProjectionType.PERSPECTIVE,
 				1080,
 				1.22f
 		);
@@ -608,6 +664,7 @@ public class Examples {
 				CameraObjectType.PRIMARY,
 				10000,
 				1,
+				CameraProjectionType.PERSPECTIVE,
 				1080,
 				1.22f
 		);
@@ -761,6 +818,7 @@ public class Examples {
 				CameraObjectType.PRIMARY,
 				10000,
 				1,
+				CameraProjectionType.PERSPECTIVE,
 				1080,
 				1.22f
 		);
