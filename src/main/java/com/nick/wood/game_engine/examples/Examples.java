@@ -28,6 +28,7 @@ import com.nick.wood.maths.objects.vector.Vec3f;
 
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.UUID;
 
 public class Examples {
 
@@ -39,10 +40,11 @@ public class Examples {
 
 	public static void main(String[] args) {
 		Examples examples = new Examples();
-		examples.basicExample();
+		//examples.basicExample();
 		//examples.boidsExample();
 		//examples.meshTypeConversionExample();
 		//examples.instancedRenderingExample();
+		examples.terrainGenerationExample();
 		//examples.renderingToFBOs();
 		//examples.infiniteHeightMapTerrain();
 		//examples.picking();
@@ -50,7 +52,37 @@ public class Examples {
 		//examples.maze();
 	}
 
+	private UUID createBasicMaterial(SceneLayer sceneLayer) {
+		MaterialObject materialObject = new MaterialObject(
+				sceneLayer.getRegistry(),
+				"Material",
+				new Vec3f(1, 1, 1),
+				1,
+				1,
+				new Vec3f(1, 1, 1)
+		);
+
+		TextureObject textureObjectVisual = new TextureObject(
+				sceneLayer.getRegistry(),
+				"VisualTextureOne",
+				"/textures/brickwall.jpg"
+		);
+
+		NormalMapObject normalMapObject = new NormalMapObject(
+				sceneLayer.getRegistry(),
+				"NormalTextureOne",
+				"/normalMaps/brickwall_normal.jpg"
+		);
+
+		textureObjectVisual.getUpdater().setParent(materialObject).sendUpdate();
+		normalMapObject.getUpdater().setParent(materialObject).sendUpdate();
+
+		return materialObject.getUuid();
+	}
+
 	public void basicExample() {
+
+		TransformBuilder transformBuilder = new TransformBuilder();
 
 		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
 		Fog fog = new Fog(true, ambientLight, 0.0001f);
@@ -61,65 +93,6 @@ public class Examples {
 				fog
 		);
 
-		TransformBuilder transformBuilder = new TransformBuilder();
-
-		MaterialObject materialObject = new MaterialObject(
-				mainSceneLayer.getRegistry(),
-				"Material",
-				new Vec3f(1, 1, 1),
-				1,
-				1,
-                new Vec3f(1, 1, 1)
-		);
-
-		TextureObject textureObjectVisual = new TextureObject(
-				mainSceneLayer.getRegistry(),
-				"VisualTextureOne",
-				"/textures/brickwall.jpg"
-		);
-
-		NormalMapObject normalMapObject = new NormalMapObject(
-				mainSceneLayer.getRegistry(),
-				"NormalTextureOne",
-				"/normalMaps/brickwall_normal.jpg"
-		);
-
-		textureObjectVisual.getUpdater().setParent(materialObject).sendUpdate();
-		normalMapObject.getUpdater().setParent(materialObject).sendUpdate();
-
-		CameraObject cameraObject = new CameraObject(
-				mainSceneLayer.getRegistry(),
-				"Camera",
-                CameraProjectionType.PERSPECTIVE,
-                CameraObjectType.PRIMARY,
-                10000,
-                1.22f,
-                1,
-                1080,
-				1920
-		);
-
-		Transform cameraTransform = transformBuilder
-				.setPosition(new Vec3f(-100, 0, 0))
-				.setScale(Vec3f.ONE)
-				.setRotation(cameraRotation).build();
-
-		TransformObject cameraTransformObject = new TransformObject(
-				mainSceneLayer.getRegistry(),
-				"CameraTransform",
-                cameraTransform.getPosition(),
-                cameraTransform.getRotation(),
-				cameraTransform.getScale());
-
-		ControllableObject controllableObject = new ControllableObject(
-				mainSceneLayer.getRegistry(),
-				"Camera controller",
-                true,
-                true,
-				0.01f,
-				1);
-		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
-
 		LightObject lightObject = new LightObject(
 				mainSceneLayer.getRegistry(),
 				"MyFirstLight",
@@ -127,35 +100,72 @@ public class Examples {
 				0.5f,
 				1f,
 				Vec3f.X,
-				0.2f,
+				0.1f,
 				Vec3f.Z.neg(),
-				10000,
-                LightingType.SPOT
+				1000,
+				LightingType.SPOT
 		);
 
 		LightObject directionalObject = new LightObject(
 				mainSceneLayer.getRegistry(),
-                "MySecondLight",
-                0.25f,
-                0.5f,
-                1f,
-                new Vec3f(0.529f, 0.808f, 0.922f),
-                0.2f,
-                Vec3f.Z.neg().add(Vec3f.X),
-                10000,
-                LightingType.DIRECTIONAL
+				"MySecondLight",
+				0.25f,
+				0.5f,
+				1f,
+				new Vec3f(0.529f, 0.808f, 0.922f),
+				0.2f,
+				Vec3f.Z.neg().add(Vec3f.X),
+				1,
+				LightingType.DIRECTIONAL
 		);
 
 		SkyBoxObject skyBoxObject = new SkyBoxObject(
 				mainSceneLayer.getRegistry(),
 				"SKY_BOX",
 				5000,
-                SkyboxType.SPHERE,
+				SkyboxType.SPHERE,
 				"textures/bw_gradient_skybox.png"
 		);
 
+		Transform cameraTransform = transformBuilder
+				.setPosition(new Vec3f(-10, 0, 0))
+				.setScale(Vec3f.ONE)
+				.setRotation(cameraRotation).build();
+
+		CameraObject cameraObject = new CameraObject(
+				mainSceneLayer.getRegistry(),
+				"Camera",
+				CameraProjectionType.PERSPECTIVE,
+				CameraObjectType.PRIMARY,
+				10000,
+				1.22f,
+				1080,
+				1,
+				1920
+		);
+
+		ControllableObject controllableObject = new ControllableObject(
+				mainSceneLayer.getRegistry(),
+				"Camera controller",
+				true,
+				true,
+				0.01f,
+				1);
+		TransformObject cameraTransformObject = new TransformObject(
+				mainSceneLayer.getRegistry(),
+				"CameraTransform",
+				cameraTransform.getPosition(),
+				cameraTransform.getRotation(),
+				cameraTransform.getScale());
+
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
 		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		mainSceneLayer.getGcsSystems().add((GcsSystem) new BoidSystem());
+
+		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
 
 		Random random = new Random();
 
@@ -172,32 +182,32 @@ public class Examples {
 					TransformObject newTransformObject = new TransformObject(
 							mainSceneLayer.getRegistry(),
 							"TransformObject" + i,
-							build.getScale(),
+							build.getPosition(),
 							build.getRotation(),
-							build.getPosition());
+							build.getScale());
 
 					GeometryObject newGeometryObject = new GeometryObject(
 							mainSceneLayer.getRegistry(),
 							"Geometry" + i,
 							Matrix4f.Identity,
-							materialObject.getUuid(),
+							basicMaterial,
 							"DEFAULT_SPHERE"
 					);
 
 					BoidObject boidObject = new BoidObject(
 							mainSceneLayer.getRegistry(),
 							"Boid" + i,
-							new Vec3f(random.nextInt(10) - 5, random.nextInt(10) - 5, random.nextInt(10) - 5),
-							10,
-							4000,
-							8,
-							0.05f,
-							0.001f,
 							0.001f,
 							0.1f,
-							20,
+							new Vec3f(random.nextInt(10) - 5, random.nextInt(10) - 5, random.nextInt(10) - 5),
+							400,
+							10,
+							8,
+							0.001f,
 							2,
-							Vec3f.ZERO
+							20,
+							Vec3f.ZERO,
+							0.001f
 					);
 					newGeometryObject.getUpdater().setParent(newTransformObject).sendUpdate();
 					boidObject.getUpdater().setParent(newTransformObject).sendUpdate();
@@ -215,49 +225,58 @@ public class Examples {
 		SceneLayer guiSceneLayer = new SceneLayer(
 				"GUI",
 				Vec3f.ONE,
-				fog
+				Fog.NOFOG
 		);
 
 		TransformObject newTransformObject = new TransformObject(
 				guiSceneLayer.getRegistry(),
 				"TransformObjectGui",
-				Vec3f.ONE,
 				new Vec3f(0, 0, 0),
-				QuaternionF.Identity);
+				QuaternionF.RotationX(Math.PI/2),
+				Vec3f.ONE.scale(100));
 
 		GeometryObject newGeometryObject = new GeometryObject(
 				guiSceneLayer.getRegistry(),
 				"GeometryGui",
 				Matrix4f.Identity,
-				materialObject.getUuid(),
-				"DEFAULT_CUBE"
+				basicMaterial,
+				"DEFAULT_SQUARE"
 		);
 
 		CameraObject hudCameraObject = new CameraObject(
 				guiSceneLayer.getRegistry(),
 				"Camera",
-				100000 ,
-				CameraObjectType.PRIMARY,
-				1000,
-				0.1f,
 				CameraProjectionType.ORTHOGRAPHIC,
-				100000,
-				1.22f
+				CameraObjectType.PRIMARY,
+				1000000,
+				1,
+				1,
+				10,
+				1
 		);
 
 		Transform hudTransform = transformBuilder
-				.setPosition(new Vec3f(0, 0, 0))
-				.setScale(Vec3f.ONE.scale(100))
+				.setPosition(new Vec3f(-1000, 0, 0))
 				.setRotation(cameraRotation)
 				.build();
 
 		TransformObject hudCameraTransformObject = new TransformObject(
 				guiSceneLayer.getRegistry(),
 				"CameraTransform",
-				hudTransform.getScale(),
 				hudTransform.getPosition(),
-				hudTransform.getRotation());
+				hudTransform.getRotation(),
+				hudTransform.getScale());
 
+
+//		ControllableObject controllableObject = new ControllableObject(
+//				guiSceneLayer.getRegistry(),
+//				"Camera controller",
+//				true,
+//				true,
+//				0.01f,
+//				1);
+//
+//		controllableObject.getUpdater().setParent(hudCameraTransformObject).sendUpdate();
 
 		hudCameraObject.getUpdater().setParent(hudCameraTransformObject).sendUpdate();
 
@@ -265,7 +284,7 @@ public class Examples {
 
 		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
 		sceneLayers.add(mainSceneLayer);
-		sceneLayers.add(guiSceneLayer);
+		//sceneLayers.add(guiSceneLayer);
 
 		GameLoop gameLoop = new GameLoop(
 				sceneLayers,
@@ -279,6 +298,7 @@ public class Examples {
 
 	public void terrainGenerationExample() {
 
+		TransformBuilder transformBuilder = new TransformBuilder();
 		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
 		Fog fog = new Fog(true, ambientLight, 0.0001f);
 
@@ -288,143 +308,96 @@ public class Examples {
 				fog
 		);
 
-//		gcsSystems.add((GcsSystem) new BoidSystem());
-//		gcsSystems.add((GcsSystem) new TestGcsSystem());
-		mainSceneLayer.getGcsSystems().add((GcsSystem) new TerrainGeneration());
-
-		TransformBuilder transformBuilder = new TransformBuilder();
-
-		MaterialObject materialObject = new MaterialObject(
-				mainSceneLayer.getRegistry(),
-				"Material",
-				new Vec3f(1, 1, 1),
-				new Vec3f(1, 1, 1),
-				1,
-				1
-		);
-
-		TextureObject textureObjectVisual = new TextureObject(
-				mainSceneLayer.getRegistry(),
-				"VisualTextureOne",
-				"/textures/brickwall.jpg"
-		);
-
-		NormalMapObject normalMapObject = new NormalMapObject(
-				mainSceneLayer.getRegistry(),
-				"NormalTextureOne",
-				"/normalMaps/brickwall_normal.jpg"
-		);
-
-		textureObjectVisual.getUpdater().setParent(materialObject).sendUpdate();
-		normalMapObject.getUpdater().setParent(materialObject).sendUpdate();
-
-		MaterialObject terrainMaterialObject = new MaterialObject(
-				mainSceneLayer.getRegistry(),
-				"TerrainMaterial",
-				new Vec3f(1, 1, 1),
-				new Vec3f(1, 1, 1),
-				1,
-				1
-		);
-
-		TextureObject terrainTextureObjectVisual = new TextureObject(
-				mainSceneLayer.getRegistry(),
-				"VisualTextureTwo",
-				"/textures/terrain.jpg"
-		);
-
-		NormalMapObject terrainNormalMapObject = new NormalMapObject(
-				mainSceneLayer.getRegistry(),
-				"NormalTextureTwo",
-				"/normalMaps/sandNormalMap.jpg"
-		);
-
-		terrainTextureObjectVisual.getUpdater().setParent(terrainMaterialObject).sendUpdate();
-		terrainNormalMapObject.getUpdater().setParent(terrainMaterialObject).sendUpdate();
-
-		CameraObject cameraObject = new CameraObject(
-				mainSceneLayer.getRegistry(),
-				"Camera",
-				1920 ,
-				CameraObjectType.PRIMARY,
-				10000,
-				1,
-				CameraProjectionType.PERSPECTIVE,
-				1080,
-				1.22f
-		);
-
-		Transform cameraTransform = transformBuilder
-				.setPosition(new Vec3f(-50, 0, 0))
-				.setScale(Vec3f.ONE)
-				.setRotation(cameraRotation).build();
-
-		TransformObject cameraTransformObject = new TransformObject(
-				mainSceneLayer.getRegistry(),
-				"CameraTransform",
-				cameraTransform.getScale(),
-				cameraTransform.getPosition(),
-				cameraTransform.getRotation());
-
-		ControllableObject controllableObject = new ControllableObject(
-				mainSceneLayer.getRegistry(),
-				"Camera controller",
-				0.01f,
-				true,
-				1,
-				true);
-
-		TerrainGenerationObject terrainGenerationObject = new TerrainGenerationObject(
-				mainSceneLayer.getRegistry(),
-				"TerrainGenerationObject",
-				5,
-				1,
-				1.7f,
-				terrainMaterialObject.getUuid(),
-				50,
-				31,
-				10,
-				10
-		);
-
 		LightObject lightObject = new LightObject(
 				mainSceneLayer.getRegistry(),
 				"MyFirstLight",
 				0.25f,
-				0.2f,
 				0.5f,
-				1,
+				1f,
 				Vec3f.X,
-				LightingType.SPOT,
+				0.1f,
 				Vec3f.Z.neg(),
-				10000
+				1000,
+				LightingType.SPOT
 		);
 
 		LightObject directionalObject = new LightObject(
 				mainSceneLayer.getRegistry(),
-				"MyFirstLight",
+				"MySecondLight",
 				0.25f,
-				1,
 				0.5f,
-				1,
+				1f,
 				new Vec3f(0.529f, 0.808f, 0.922f),
-				LightingType.DIRECTIONAL,
+				0.2f,
 				Vec3f.Z.neg().add(Vec3f.X),
-				1
+				1,
+				LightingType.DIRECTIONAL
 		);
 
 		SkyBoxObject skyBoxObject = new SkyBoxObject(
 				mainSceneLayer.getRegistry(),
 				"SKY_BOX",
-				SkyboxType.SPHERE,
 				5000,
+				SkyboxType.SPHERE,
 				"textures/bw_gradient_skybox.png"
 		);
 
+		Transform cameraTransform = transformBuilder
+				.setPosition(new Vec3f(-10, 0, 0))
+				.setScale(Vec3f.ONE)
+				.setRotation(cameraRotation).build();
+
+		CameraObject cameraObject = new CameraObject(
+				mainSceneLayer.getRegistry(),
+				"Camera",
+				CameraProjectionType.PERSPECTIVE,
+				CameraObjectType.PRIMARY,
+				10000,
+				1.22f,
+				1080,
+				1,
+				1920
+		);
+
+		ControllableObject controllableObject = new ControllableObject(
+				mainSceneLayer.getRegistry(),
+				"Camera controller",
+				true,
+				true,
+				0.01f,
+				1);
+		TransformObject cameraTransformObject = new TransformObject(
+				mainSceneLayer.getRegistry(),
+				"CameraTransform",
+				cameraTransform.getPosition(),
+				cameraTransform.getRotation(),
+				cameraTransform.getScale());
+
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
 		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+//		gcsSystems.add((GcsSystem) new BoidSystem());
+//		gcsSystems.add((GcsSystem) new TestGcsSystem());
+		mainSceneLayer.getGcsSystems().add((GcsSystem) new TerrainGeneration());
+
+		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
+
+		TerrainGenerationObject terrainGenerationObject = new TerrainGenerationObject(
+				mainSceneLayer.getRegistry(),
+				"TerrainGenerationObject",
+				50,
+				5,
+				31,
+				10,
+				1.7f,
+				basicMaterial,
+				5,
+				10
+		);
+
 		terrainGenerationObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
-		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
 		wip.setLockCursor(true).setWindowWidth(800).setWindowHeight(600).setDebug(true);
@@ -444,6 +417,7 @@ public class Examples {
 
 	public void boidsExample() {
 
+		TransformBuilder transformBuilder = new TransformBuilder();
 		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
 		Fog fog = new Fog(true, ambientLight, 0.0001f);
 
@@ -453,99 +427,79 @@ public class Examples {
 				fog
 		);
 
-		mainSceneLayer.getGcsSystems().add((GcsSystem) new BoidSystem());
-
-		TransformBuilder transformBuilder = new TransformBuilder();
-
-		MaterialObject materialObject = new MaterialObject(
-				mainSceneLayer.getRegistry(),
-				"Material",
-				new Vec3f(1, 1, 1),
-				new Vec3f(1, 1, 1),
-				1,
-				1
-		);
-
-		TextureObject textureObjectVisual = new TextureObject(
-				mainSceneLayer.getRegistry(),
-				"VisualTextureOne",
-				"/textures/brickwall.jpg"
-		);
-
-		NormalMapObject normalMapObject = new NormalMapObject(
-				mainSceneLayer.getRegistry(),
-				"NormalTextureOne",
-				"/normalMaps/brickwall_normal.jpg"
-		);
-
-		textureObjectVisual.getUpdater().setParent(materialObject).sendUpdate();
-		normalMapObject.getUpdater().setParent(materialObject).sendUpdate();
-
-		CameraObject cameraObject = new CameraObject(
-				mainSceneLayer.getRegistry(),
-				"Camera",
-				1920 ,
-				CameraObjectType.PRIMARY,
-				10000,
-				1,
-				CameraProjectionType.PERSPECTIVE,
-				1080,
-				1.22f
-		);
-
-		Transform cameraTransform = transformBuilder
-				.setPosition(new Vec3f(-300, 0, 0))
-				.setScale(Vec3f.ONE)
-				.setRotation(cameraRotation).build();
-
-		TransformObject cameraTransformObject = new TransformObject(
-				mainSceneLayer.getRegistry(),
-				"CameraTransform",
-				cameraTransform.getScale(),
-				cameraTransform.getPosition(),
-				cameraTransform.getRotation());
-
-		ControllableObject controllableObject = new ControllableObject(
-				mainSceneLayer.getRegistry(),
-				"Camera controller",
-				0.01f,
-				true,
-				5,
-				true);
-
 		LightObject lightObject = new LightObject(
 				mainSceneLayer.getRegistry(),
 				"MyFirstLight",
 				0.25f,
-				0.2f,
 				0.5f,
-				1,
+				1f,
 				Vec3f.X,
-				LightingType.SPOT,
+				0.1f,
 				Vec3f.Z.neg(),
-				10000
+				1000,
+				LightingType.SPOT
 		);
 
 		LightObject directionalObject = new LightObject(
 				mainSceneLayer.getRegistry(),
-				"MyFirstLight",
+				"MySecondLight",
 				0.25f,
-				1,
 				0.5f,
-				1,
+				1f,
 				new Vec3f(0.529f, 0.808f, 0.922f),
-				LightingType.DIRECTIONAL,
-				Vec3f.Z.neg(),
-				3
+				0.2f,
+				Vec3f.Z.neg().add(Vec3f.X),
+				1,
+				LightingType.DIRECTIONAL
 		);
 
 		SkyBoxObject skyBoxObject = new SkyBoxObject(
 				mainSceneLayer.getRegistry(),
 				"SKY_BOX",
-				SkyboxType.SPHERE,
 				5000,
+				SkyboxType.SPHERE,
 				"textures/bw_gradient_skybox.png"
 		);
+
+		Transform cameraTransform = transformBuilder
+				.setPosition(new Vec3f(-10, 0, 0))
+				.setScale(Vec3f.ONE)
+				.setRotation(cameraRotation).build();
+
+		CameraObject cameraObject = new CameraObject(
+				mainSceneLayer.getRegistry(),
+				"Camera",
+				CameraProjectionType.PERSPECTIVE,
+				CameraObjectType.PRIMARY,
+				10000,
+				1.22f,
+				1080,
+				1,
+				1920
+		);
+
+		ControllableObject controllableObject = new ControllableObject(
+				mainSceneLayer.getRegistry(),
+				"Camera controller",
+				true,
+				true,
+				0.01f,
+				1);
+		TransformObject cameraTransformObject = new TransformObject(
+				mainSceneLayer.getRegistry(),
+				"CameraTransform",
+				cameraTransform.getPosition(),
+				cameraTransform.getRotation(),
+				cameraTransform.getScale());
+
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
+
+		mainSceneLayer.getGcsSystems().add((GcsSystem) new BoidSystem());
 
 		Random random = new Random();
 
@@ -562,32 +516,32 @@ public class Examples {
 					TransformObject newTransformObject = new TransformObject(
 							mainSceneLayer.getRegistry(),
 							"TransformObject" + i,
-							build.getScale(),
 							build.getPosition(),
-							build.getRotation());
+							build.getRotation(),
+							build.getScale());
 
 					GeometryObject newGeometryObject = new GeometryObject(
 							mainSceneLayer.getRegistry(),
 							"Geometry" + i,
 							Matrix4f.Identity,
-							materialObject.getUuid(),
+							basicMaterial,
 							"DEFAULT_SPHERE"
 					);
 
 					BoidObject boidObject = new BoidObject(
 							mainSceneLayer.getRegistry(),
 							"Boid" + i,
-							new Vec3f(random.nextInt(10) - 5, random.nextInt(10) - 5, random.nextInt(10) - 5),
-							10,
-							4000,
-							8,
-							0.05f,
-							0.001f,
 							0.001f,
 							0.1f,
-							20,
+							new Vec3f(random.nextInt(10) - 5, random.nextInt(10) - 5, random.nextInt(10) - 5),
+							400,
+							10,
+							10,
+							0.001f,
 							2,
-							Vec3f.ZERO
+							50,
+							Vec3f.ZERO,
+							0.001f
 					);
 					newGeometryObject.getUpdater().setParent(newTransformObject).sendUpdate();
 					boidObject.getUpdater().setParent(newTransformObject).sendUpdate();
@@ -619,6 +573,7 @@ public class Examples {
 
 	public void meshTypeConversionExample() {
 
+		TransformBuilder transformBuilder = new TransformBuilder();
 		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
 		Fog fog = new Fog(true, ambientLight, 0.0001f);
 
@@ -628,100 +583,77 @@ public class Examples {
 				fog
 		);
 
-		mainSceneLayer.getGcsSystems().add((GcsSystem) new MeshAddSystem());
-		mainSceneLayer.getGcsSystems().add((GcsSystem) new MeshRemoveSystem());
-
-		TransformBuilder transformBuilder = new TransformBuilder();
-
-		MaterialObject materialObject = new MaterialObject(
-				mainSceneLayer.getRegistry(),
-				"Material",
-				new Vec3f(1, 1, 1),
-				new Vec3f(1, 1, 1),
-				1,
-				1
-		);
-
-		TextureObject textureObjectVisual = new TextureObject(
-				mainSceneLayer.getRegistry(),
-				"VisualTextureOne",
-				"/textures/brickwall.jpg"
-		);
-
-		NormalMapObject normalMapObject = new NormalMapObject(
-				mainSceneLayer.getRegistry(),
-				"NormalTextureOne",
-				"/normalMaps/brickwall_normal.jpg"
-		);
-
-		textureObjectVisual.getUpdater().setParent(materialObject).sendUpdate();
-		normalMapObject.getUpdater().setParent(materialObject).sendUpdate();
-
-		CameraObject cameraObject = new CameraObject(
-				mainSceneLayer.getRegistry(),
-				"Camera",
-				1920 ,
-				CameraObjectType.PRIMARY,
-				10000,
-				1,
-				CameraProjectionType.PERSPECTIVE,
-				1080,
-				1.22f
-		);
-
-		Transform cameraTransform = transformBuilder
-				.setPosition(new Vec3f(-300, 0, 0))
-				.setScale(Vec3f.ONE)
-				.setRotation(cameraRotation).build();
-
-		TransformObject cameraTransformObject = new TransformObject(
-				mainSceneLayer.getRegistry(),
-				"CameraTransform",
-				cameraTransform.getScale(),
-				cameraTransform.getPosition(),
-				cameraTransform.getRotation());
-
-		ControllableObject controllableObject = new ControllableObject(
-				mainSceneLayer.getRegistry(),
-				"Camera controller",
-				0.01f,
-				false,
-				2,
-				true);
-
 		LightObject lightObject = new LightObject(
 				mainSceneLayer.getRegistry(),
 				"MyFirstLight",
 				0.25f,
-				0.2f,
 				0.5f,
-				1,
+				1f,
 				Vec3f.X,
-				LightingType.SPOT,
+				0.1f,
 				Vec3f.Z.neg(),
-				10000
+				1000,
+				LightingType.SPOT
 		);
 
 		LightObject directionalObject = new LightObject(
 				mainSceneLayer.getRegistry(),
-				"MyFirstLight",
+				"MySecondLight",
 				0.25f,
-				1,
 				0.5f,
-				1,
+				1f,
 				new Vec3f(0.529f, 0.808f, 0.922f),
-				LightingType.DIRECTIONAL,
-				Vec3f.Z.neg(),
-				3
+				0.2f,
+				Vec3f.Z.neg().add(Vec3f.X),
+				1,
+				LightingType.DIRECTIONAL
 		);
 
 		SkyBoxObject skyBoxObject = new SkyBoxObject(
 				mainSceneLayer.getRegistry(),
 				"SKY_BOX",
-				SkyboxType.SPHERE,
 				5000,
+				SkyboxType.SPHERE,
 				"textures/bw_gradient_skybox.png"
 		);
+
+		Transform cameraTransform = transformBuilder
+				.setPosition(new Vec3f(-10, 0, 0))
+				.setScale(Vec3f.ONE)
+				.setRotation(cameraRotation).build();
+
+		CameraObject cameraObject = new CameraObject(
+				mainSceneLayer.getRegistry(),
+				"Camera",
+				CameraProjectionType.PERSPECTIVE,
+				CameraObjectType.PRIMARY,
+				10000,
+				1.22f,
+				1080,
+				1,
+				1920
+		);
+
+		ControllableObject controllableObject = new ControllableObject(
+				mainSceneLayer.getRegistry(),
+				"Camera controller",
+				true,
+				true,
+				0.01f,
+				1);
+		TransformObject cameraTransformObject = new TransformObject(
+				mainSceneLayer.getRegistry(),
+				"CameraTransform",
+				cameraTransform.getPosition(),
+				cameraTransform.getRotation(),
+				cameraTransform.getScale());
+
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
 
 		for (int i = 0; i < 20; i++) {
 
@@ -734,15 +666,15 @@ public class Examples {
 					TransformObject newTransformObject = new TransformObject(
 							mainSceneLayer.getRegistry(),
 							"TransformObject" + i,
-							build.getScale(),
 							build.getPosition(),
-							build.getRotation());
+							build.getRotation(),
+							build.getScale());
 
 					GeometryObject newGeometryObject = new GeometryObject(
 							mainSceneLayer.getRegistry(),
 							"Geometry" + i,
 							Matrix4f.Identity,
-							materialObject.getUuid(),
+							basicMaterial,
 							"DEFAULT_CUBE"
 					);
 
@@ -761,6 +693,9 @@ public class Examples {
 		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
 		wip.setLockCursor(true).setWindowWidth(1200).setWindowHeight(1100).setDebug(true);
 
+		mainSceneLayer.getGcsSystems().add((GcsSystem) new MeshAddSystem());
+		mainSceneLayer.getGcsSystems().add((GcsSystem) new MeshRemoveSystem());
+
 		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
 		sceneLayers.add(mainSceneLayer);
 
@@ -776,6 +711,7 @@ public class Examples {
 
 	public void instancedRenderingExample() {
 
+		TransformBuilder transformBuilder = new TransformBuilder();
 		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
 		Fog fog = new Fog(true, ambientLight, 0.0001f);
 
@@ -785,97 +721,77 @@ public class Examples {
 				fog
 		);
 
-		TransformBuilder transformBuilder = new TransformBuilder();
-
-		MaterialObject materialObject = new MaterialObject(
-				mainSceneLayer.getRegistry(),
-				"Material",
-				new Vec3f(1, 1, 1),
-				new Vec3f(1, 1, 1),
-				1,
-				1
-		);
-
-		TextureObject textureObjectVisual = new TextureObject(
-				mainSceneLayer.getRegistry(),
-				"VisualTextureOne",
-				"/textures/brickwall.jpg"
-		);
-
-		NormalMapObject normalMapObject = new NormalMapObject(
-				mainSceneLayer.getRegistry(),
-				"NormalTextureOne",
-				"/normalMaps/brickwall_normal.jpg"
-		);
-
-		textureObjectVisual.getUpdater().setParent(materialObject).sendUpdate();
-		normalMapObject.getUpdater().setParent(materialObject).sendUpdate();
-
-		CameraObject cameraObject = new CameraObject(
-				mainSceneLayer.getRegistry(),
-				"Camera",
-				1920 ,
-				CameraObjectType.PRIMARY,
-				10000,
-				1,
-				CameraProjectionType.PERSPECTIVE,
-				1080,
-				1.22f
-		);
-
-		Transform cameraTransform = transformBuilder
-				.setPosition(new Vec3f(-300, 0, 0))
-				.setScale(Vec3f.ONE)
-				.setRotation(cameraRotation).build();
-
-		TransformObject cameraTransformObject = new TransformObject(
-				mainSceneLayer.getRegistry(),
-				"CameraTransform",
-				cameraTransform.getScale(),
-				cameraTransform.getPosition(),
-				cameraTransform.getRotation());
-
-		ControllableObject controllableObject = new ControllableObject(
-				mainSceneLayer.getRegistry(),
-				"Camera controller",
-				0.01f,
-				true,
-				2,
-				true);
-
 		LightObject lightObject = new LightObject(
 				mainSceneLayer.getRegistry(),
 				"MyFirstLight",
 				0.25f,
-				0.2f,
 				0.5f,
-				1,
+				1f,
 				Vec3f.X,
-				LightingType.SPOT,
+				0.1f,
 				Vec3f.Z.neg(),
-				10000
+				1000,
+				LightingType.SPOT
 		);
 
 		LightObject directionalObject = new LightObject(
 				mainSceneLayer.getRegistry(),
-				"MyFirstLight",
+				"MySecondLight",
 				0.25f,
-				1,
 				0.5f,
-				1,
+				1f,
 				new Vec3f(0.529f, 0.808f, 0.922f),
-				LightingType.DIRECTIONAL,
-				Vec3f.Z.neg(),
-				3
+				0.2f,
+				Vec3f.Z.neg().add(Vec3f.X),
+				1,
+				LightingType.DIRECTIONAL
 		);
 
 		SkyBoxObject skyBoxObject = new SkyBoxObject(
 				mainSceneLayer.getRegistry(),
 				"SKY_BOX",
-				SkyboxType.SPHERE,
 				5000,
+				SkyboxType.SPHERE,
 				"textures/bw_gradient_skybox.png"
 		);
+
+		Transform cameraTransform = transformBuilder
+				.setPosition(new Vec3f(-10, 0, 0))
+				.setScale(Vec3f.ONE)
+				.setRotation(cameraRotation).build();
+
+		CameraObject cameraObject = new CameraObject(
+				mainSceneLayer.getRegistry(),
+				"Camera",
+				CameraProjectionType.PERSPECTIVE,
+				CameraObjectType.PRIMARY,
+				10000,
+				1.22f,
+				1080,
+				1,
+				1920
+		);
+
+		ControllableObject controllableObject = new ControllableObject(
+				mainSceneLayer.getRegistry(),
+				"Camera controller",
+				true,
+				true,
+				0.01f,
+				1);
+		TransformObject cameraTransformObject = new TransformObject(
+				mainSceneLayer.getRegistry(),
+				"CameraTransform",
+				cameraTransform.getPosition(),
+				cameraTransform.getRotation(),
+				cameraTransform.getScale());
+
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
 
 		for (int i = 0; i < 60; i++) {
 
@@ -888,15 +804,15 @@ public class Examples {
 					TransformObject newTransformObject = new TransformObject(
 							mainSceneLayer.getRegistry(),
 							"TransformObject" + i,
-							build.getScale(),
 							build.getPosition(),
-							build.getRotation());
+							build.getRotation(),
+							build.getScale());
 
 					GeometryObject newGeometryObject = new GeometryObject(
 							mainSceneLayer.getRegistry(),
 							"Geometry" + i,
 							Matrix4f.Identity,
-							materialObject.getUuid(),
+							basicMaterial,
 							"DEFAULT_CUBE"
 					);
 
