@@ -36,12 +36,12 @@ public class Examples {
 
 	public static void main(String[] args) {
 		Examples examples = new Examples();
-		//examples.testBed();
-		//examples.boidsExample();
+		//examples.orthographic();
+		examples.boidsExample();
 		//examples.meshTypeConversionExample();
 		//examples.instancedRenderingExample();
 		//examples.terrainGenerationExample();
-		examples.cubeWorldExample();
+		//examples.cubeWorldExample();
 		//examples.renderingToFBOs();
 		//examples.infiniteHeightMapTerrain();
 		//examples.picking();
@@ -105,7 +105,7 @@ public class Examples {
 		return materialObject.getUuid();
 	}
 
-	public void testBed() {
+	public void orthographic() {
 
 		TransformBuilder transformBuilder = new TransformBuilder();
 
@@ -139,34 +139,38 @@ public class Examples {
 				1f,
 				new Vec3f(0.529f, 0.808f, 0.922f),
 				0.2f,
-				Vec3f.Z.neg().add(Vec3f.X),
+				Vec3f.X.neg(),
 				1,
 				LightingType.DIRECTIONAL
 		);
 
-		SkyBoxObject skyBoxObject = new SkyBoxObject(
-				mainSceneLayer.getRegistry(),
-				"SKY_BOX",
-				5000,
-				SkyboxType.SPHERE,
-				"textures/bw_gradient_skybox.png"
-		);
-
 		Transform cameraTransform = transformBuilder
-				.setPosition(new Vec3f(-10, 0, 0))
+				.setPosition(new Vec3f(-100, 0, 0))
 				.setScale(Vec3f.ONE)
 				.setRotation(cameraRotation).build();
+
+//		CameraObject cameraObject = new CameraObject(
+//				mainSceneLayer.getRegistry(),
+//				"Camera",
+//				CameraProjectionType.ORTHOGRAPHIC,
+//				CameraObjectType.PRIMARY,
+//				10000,
+//				1.22f,
+//				1080,
+//				1,
+//				1920
+//		);
 
 		CameraObject cameraObject = new CameraObject(
 				mainSceneLayer.getRegistry(),
 				"Camera",
-				CameraProjectionType.PERSPECTIVE,
+				CameraProjectionType.ORTHOGRAPHIC,
 				CameraObjectType.PRIMARY,
-				10000,
-				1.22f,
-				1080,
-				1,
-				1920
+				1000,
+				0,
+				100,
+				-1000,
+				100
 		);
 
 		ControllableObject controllableObject = new ControllableObject(
@@ -193,6 +197,31 @@ public class Examples {
 		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
 
 		Random random = new Random();
+
+		TextObject textObject = new TextObject(
+				mainSceneLayer.getRegistry(),
+				"TEXT",
+				16,
+				"fonts/verandaGreenBold.png",
+				16,
+				"HELLO, WORLD!"
+		);
+
+//		TransformObject cubeTransform = new TransformObject(
+//				mainSceneLayer.getRegistry(),
+//				"CubeTransformObject",
+//				new Vec3f(0, 0, 0),
+//				quaternionY,
+//				Vec3f.ONE.scale(200));
+//
+//		GeometryObject cube = new GeometryObject(
+//				mainSceneLayer.getRegistry(),
+//				"Cube",
+//				Matrix4f.Identity,
+//				basicMaterial,
+//				"DEFAULT_SQUARE"
+//		);
+//		cube.getUpdater().setParent(cubeTransform).sendUpdate();
 
 		for (int i = 0; i < 10; i++) {
 
@@ -242,7 +271,7 @@ public class Examples {
 		}
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
-		wip.setLockCursor(true).setWindowWidth(800).setWindowHeight(600).setDebug(true);
+		wip.setLockCursor(true).setWindowWidth(800).setWindowHeight(800).setDebug(true);
 
 
 		////// gui layer ///////
@@ -273,10 +302,10 @@ public class Examples {
 				"Camera",
 				CameraProjectionType.ORTHOGRAPHIC,
 				CameraObjectType.PRIMARY,
-				1000000,
 				1,
+				0,
 				1,
-				10,
+				-1,
 				1
 		);
 
@@ -724,7 +753,7 @@ public class Examples {
 		SkyBoxObject skyBoxObject = new SkyBoxObject(
 				mainSceneLayer.getRegistry(),
 				"SKY_BOX",
-				5000,
+				1000,
 				SkyboxType.SPHERE,
 				"textures/bw_gradient_skybox.png"
 		);
@@ -741,9 +770,9 @@ public class Examples {
 				CameraObjectType.PRIMARY,
 				10000,
 				1.22f,
-				1080,
+				800,
 				1,
-				1920
+				1000
 		);
 
 		ControllableObject controllableObject = new ControllableObject(
@@ -823,8 +852,8 @@ public class Examples {
 		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
-		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setDebug(true);
-		wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
+		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
+		wip.setLockCursor(true).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
 
 		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
 		sceneLayers.add(mainSceneLayer);
