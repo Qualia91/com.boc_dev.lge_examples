@@ -39,17 +39,17 @@ public class Examples {
 
 	public static void main(String[] args) {
 		Examples examples = new Examples();
-		examples.orthographic();
+		//examples.orthographic();
 		//examples.boidsExample();
 		//examples.meshTypeConversionExample();
 		//examples.instancedRenderingExample();
 		//examples.terrainGenerationExample();
 		//examples.cubeWorldExample();
-		//examples.mazeExample();
+		examples.mazeExample();
+		//examples.pickingExample();
 
 		// todo
 		//examples.renderingToFBOs();
-		//examples.picking();
 	}
 
 	private UUID createBasicMaterial(SceneLayer sceneLayer) {
@@ -403,23 +403,10 @@ public class Examples {
 				LightingType.SPOT
 		);
 
-		LightObject directionalObject = new LightObject(
-				mainSceneLayer.getRegistry(),
-				"MySecondLight",
-				0.25f,
-				0.5f,
-				1f,
-				new Vec3f(0.529f, 0.808f, 0.922f),
-				0.2f,
-				Vec3f.Z.neg().add(Vec3f.X),
-				1,
-				LightingType.DIRECTIONAL
-		);
-
 		SkyBoxObject skyBoxObject = new SkyBoxObject(
 				mainSceneLayer.getRegistry(),
 				"SKY_BOX",
-				5000,
+				500,
 				SkyboxType.SPHERE,
 				"textures/bw_gradient_skybox.png"
 		);
@@ -434,11 +421,11 @@ public class Examples {
 				"Camera",
 				CameraProjectionType.PERSPECTIVE,
 				CameraObjectType.PRIMARY,
-				10000,
+				1000,
 				1.22f,
-				1080,
+				1200,
 				0.01f,
-				1920
+				1600
 		);
 
 		ControllableObject controllableObject = new ControllableObject(
@@ -468,7 +455,7 @@ public class Examples {
 		int hillHeight = 20;
 		Perlin3D perlin3D = new Perlin3D(500, segmentSize);
 		Perlin2Df perlin2D = new Perlin2Df(500, segmentSize);
-		int size = 70;
+		int size = 50;
 		for (int i = 0; i < size; i++) {
 			for (int j = 0; j < size; j++) {
 				for (int k = 0; k < size; k++) {
@@ -502,6 +489,39 @@ public class Examples {
 //						GeometryGameObject geometryGameObject = new GeometryGameObject(cubeGrass);
 //						transformObject.getGameObjectData().attachGameObjectNode(geometryGameObject);
 //					}
+
+				}
+			}
+		}
+
+		// make some lights
+		Random random = new Random();
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				for (int k = 0; k < 3; k++) {
+
+
+					TransformObject pointLightTransformObject = new TransformObject(
+							mainSceneLayer.getRegistry(),
+							"CameraTransform",
+							new Vec3f(i * 15 - 1, j * 15 - 1, k * 25 - 1),
+							QuaternionF.Identity,
+							Vec3f.ONE);
+
+					LightObject pointLight = new LightObject(
+							mainSceneLayer.getRegistry(),
+							"PointLight",
+							0.25f,
+							0.5f,
+							1f,
+							new Vec3f(random.nextFloat(), random.nextFloat(), random.nextFloat()),
+							0.1f,
+							Vec3f.Z.neg(),
+							50,
+							LightingType.POINT
+					);
+
+					pointLight.getUpdater().setParent(pointLightTransformObject).sendUpdate();
 
 				}
 			}
@@ -605,7 +625,6 @@ public class Examples {
 		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 
-//		gcsSystems.add((GcsSystem) new TestGcsSystem());
 		mainSceneLayer.getGcsSystems().add((GcsSystem) new TerrainGeneration());
 
 		MaterialObject materialObject = new MaterialObject(
@@ -1033,9 +1052,9 @@ public class Examples {
 				CameraObjectType.PRIMARY,
 				10000,
 				1.22f,
-				1080,
+				800,
 				1,
-				1920
+				1000
 		);
 
 		ControllableObject controllableObject = new ControllableObject(
@@ -1059,11 +1078,11 @@ public class Examples {
 
 		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
 
-		for (int i = 0; i < 20; i++) {
+		for (int i = 0; i < 15; i++) {
 
-			for (int j = 0; j < 20; j++) {
+			for (int j = 0; j < 15; j++) {
 
-				for (int k = 0; k < 20; k++) {
+				for (int k = 0; k < 15; k++) {
 
 					Transform build = transformBuilder.reset().setPosition(new Vec3f(i*4, j*4, k*4)).build();
 
@@ -1095,7 +1114,7 @@ public class Examples {
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
 		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setDebug(true);
 		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
-		wip.setLockCursor(true).setWindowWidth(1200).setWindowHeight(1100).setDebug(true);
+		wip.setLockCursor(true).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
 
 		mainSceneLayer.getGcsSystems().add((GcsSystem) new MeshAddSystem());
 		mainSceneLayer.getGcsSystems().add((GcsSystem) new MeshRemoveSystem());
@@ -1235,6 +1254,170 @@ public class Examples {
 		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
 		wip.setLockCursor(true).setWindowWidth(800).setWindowHeight(600).setDebug(true);
 
+
+		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
+		sceneLayers.add(mainSceneLayer);
+
+		GameLoop gameLoop = new GameLoop(
+				sceneLayers,
+				wip.build()
+		);
+
+		gameLoop.start();
+
+
+	}
+
+	public void pickingExample() {
+
+		TransformBuilder transformBuilder = new TransformBuilder();
+		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
+		Fog fog = new Fog(true, ambientLight, 0.0001f);
+
+		SceneLayer mainSceneLayer = new SceneLayer(
+				"MAIN",
+				ambientLight,
+				fog
+		);
+
+		LightObject lightObject = new LightObject(
+				mainSceneLayer.getRegistry(),
+				"MyFirstLight",
+				0.25f,
+				0.5f,
+				1f,
+				Vec3f.X,
+				0.1f,
+				Vec3f.Z.neg(),
+				1000,
+				LightingType.SPOT
+		);
+
+		LightObject directionalObject = new LightObject(
+				mainSceneLayer.getRegistry(),
+				"MySecondLight",
+				0.25f,
+				0.5f,
+				1f,
+				new Vec3f(0.529f, 0.808f, 0.922f),
+				0.2f,
+				Vec3f.Z.neg().add(Vec3f.X),
+				1,
+				LightingType.DIRECTIONAL
+		);
+
+		SkyBoxObject skyBoxObject = new SkyBoxObject(
+				mainSceneLayer.getRegistry(),
+				"SKY_BOX",
+				5000,
+				SkyboxType.SPHERE,
+				"textures/bw_gradient_skybox.png"
+		);
+
+		Transform cameraTransform = transformBuilder
+				.setPosition(new Vec3f(-50, 0, 0))
+				.setScale(Vec3f.ONE)
+				.setRotation(cameraRotation).build();
+
+		CameraObject cameraObject = new CameraObject(
+				mainSceneLayer.getRegistry(),
+				"Camera",
+				CameraProjectionType.PERSPECTIVE,
+				CameraObjectType.PRIMARY,
+				10000,
+				1.22f,
+				800,
+				1,
+				1000
+		);
+
+		ControllableObject controllableObject = new ControllableObject(
+				mainSceneLayer.getRegistry(),
+				"Camera controller",
+				false,
+				true,
+				0.01f,
+				1);
+		TransformObject cameraTransformObject = new TransformObject(
+				mainSceneLayer.getRegistry(),
+				"CameraTransform",
+				cameraTransform.getPosition(),
+				cameraTransform.getRotation(),
+				cameraTransform.getScale());
+
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
+
+		//mainSceneLayer.getGcsSystems().add((GcsSystem) new BoidSystem());
+
+		Random random = new Random();
+
+		for (int i = 0; i < 10; i++) {
+
+			for (int j = 0; j < 10; j++) {
+
+				for (int k = 0; k < 10; k++) {
+
+
+					Transform build = transformBuilder.reset().setPosition(new Vec3f(i*4, j*4, k*4)).build();
+
+
+					TransformObject newTransformObject = new TransformObject(
+							mainSceneLayer.getRegistry(),
+							"TransformObject" + i,
+							build.getPosition(),
+							build.getRotation(),
+							build.getScale());
+
+					GeometryObject newGeometryObject = new GeometryObject(
+							mainSceneLayer.getRegistry(),
+							"Geometry " + i + " " + j + " " + k,
+							Matrix4f.Identity,
+							basicMaterial,
+							"DEFAULT_SPHERE"
+					);
+
+					BoidObject boidObject = new BoidObject(
+							mainSceneLayer.getRegistry(),
+							"Boid" + i,
+							0.001f,
+							0.1f,
+							new Vec3f(random.nextInt(10) - 5, random.nextInt(10) - 5, random.nextInt(10) - 5),
+							400,
+							10,
+							10,
+							0.001f,
+							2,
+							50,
+							Vec3f.ZERO,
+							0.001f
+					);
+
+					PickableObject pickableObject = new PickableObject(
+							mainSceneLayer.getRegistry(),
+							"Pickable Boid number " + i + " " + j + " " + k,
+							true
+					);
+
+					newGeometryObject.getUpdater().setParent(newTransformObject).sendUpdate();
+					boidObject.getUpdater().setParent(newTransformObject).sendUpdate();
+					pickableObject.getUpdater().setParent(newGeometryObject).sendUpdate();
+
+				}
+			}
+		}
+
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
+		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
+		wip.setLockCursor(false).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
 
 		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
 		sceneLayers.add(mainSceneLayer);
