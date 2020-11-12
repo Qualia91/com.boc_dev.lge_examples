@@ -14,6 +14,7 @@ import com.boc_dev.lge_systems.generation.RecursiveBackTracker;
 import com.boc_dev.lge_systems.generation.TerrainGeneration;
 import com.boc_dev.graphics_library.WindowInitialisationParametersBuilder;
 import com.boc_dev.graphics_library.objects.lighting.Fog;
+import com.boc_dev.lge_systems.generation.WaterGeneration;
 import com.boc_dev.lge_systems.physics.RigidBodyPhysicsSystem;
 import com.boc_dev.maths.noise.Perlin2Df;
 import com.boc_dev.maths.noise.Perlin3D;
@@ -43,14 +44,14 @@ public class Examples {
 		//examples.boidsExample();
 		//examples.meshTypeConversionExample();
 		//examples.instancedRenderingExample();
-		//examples.terrainGenerationExample();
+		examples.terrainGenerationExample();
 		//examples.cubeWorldExample();
 		//examples.mazeExample();
 		//examples.pickingExample();
 		//examples.twoBallsExample();
 		//examples.twoLinesExample();
 		//examples.bigBangExample();
-		examples.cubeSphereExample();
+		//examples.cubeSphereExample();
 
 		// todo
 		//examples.renderingToFBOs();
@@ -578,6 +579,7 @@ public class Examples {
 		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 
 		mainSceneLayer.getGcsSystems().add((GcsSystem) new TerrainGeneration());
+		mainSceneLayer.getGcsSystems().add((GcsSystem) new WaterGeneration());
 
 		MaterialObject materialObject = new MaterialObject(
 				mainSceneLayer.getRegistry(),
@@ -606,7 +608,7 @@ public class Examples {
 		TerrainGenerationObject terrainGenerationObject = new TerrainGenerationObject(
 				mainSceneLayer.getRegistry(),
 				"TerrainGenerationObject",
-				50,
+				100,
 				5,
 				31,
 				12,
@@ -617,6 +619,15 @@ public class Examples {
 		);
 
 		terrainGenerationObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		WaterGenerationObject waterGenerationObject = new WaterGenerationObject(
+				mainSceneLayer.getRegistry(),
+				"water",
+				1024,
+				32,
+				0
+		);
+		waterGenerationObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
 		wip.setLockCursor(true).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
