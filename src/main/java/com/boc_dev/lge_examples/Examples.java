@@ -44,10 +44,10 @@ public class Examples {
 		//examples.boidsExample();
 		//examples.meshTypeConversionExample();
 		//examples.instancedRenderingExample();
-		examples.terrainGenerationExample();
+		//examples.terrainGenerationExample();
 		//examples.cubeWorldExample();
 		//examples.mazeExample();
-		//examples.pickingExample();
+		examples.pickingExample();
 		//examples.twoBallsExample();
 		//examples.twoLinesExample();
 		//examples.bigBangExample();
