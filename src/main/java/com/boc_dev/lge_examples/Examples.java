@@ -1272,7 +1272,7 @@ public class Examples {
 		SkyBoxObject skyBoxObject = new SkyBoxObject(
 				mainSceneLayer.getRegistry(),
 				"SKY_BOX",
-				5000,
+				500,
 				SkyboxType.SPHERE,
 				"textures/bw_gradient_skybox.png"
 		);
@@ -1287,11 +1287,11 @@ public class Examples {
 				"Camera",
 				CameraProjectionType.PERSPECTIVE,
 				CameraObjectType.PRIMARY,
-				10000,
+				1000,
 				1.22f,
-				800,
-				1,
-				1000
+				1080,
+				0.1f,
+				1920
 		);
 
 		ControllableObject controllableObject = new ControllableObject(
@@ -1300,7 +1300,7 @@ public class Examples {
 				false,
 				true,
 				0.01f,
-				1);
+				0.5f);
 		TransformObject cameraTransformObject = new TransformObject(
 				mainSceneLayer.getRegistry(),
 				"CameraTransform",
@@ -1379,8 +1379,8 @@ public class Examples {
 		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
-		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
-		wip.setLockCursor(false).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
+		wip.setLockCursor(false).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
+		//wip.setLockCursor(false).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
 
 		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
 		sceneLayers.add(mainSceneLayer);
