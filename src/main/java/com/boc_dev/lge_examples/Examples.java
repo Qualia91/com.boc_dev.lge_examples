@@ -6,6 +6,7 @@ import com.boc_dev.lge_model.gcs.Registry;
 import com.boc_dev.lge_model.generated.components.*;
 import com.boc_dev.lge_model.generated.enums.*;
 import com.boc_dev.lge_model.systems.GcsSystem;
+import com.boc_dev.lge_systems.MaterialChangeSystem;
 import com.boc_dev.lge_systems.MeshAddSystem;
 import com.boc_dev.lge_systems.MeshRemoveSystem;
 import com.boc_dev.lge_systems.boids.BoidSystem;
@@ -47,42 +48,15 @@ public class Examples {
 		//examples.terrainGenerationExample();
 		//examples.cubeWorldExample();
 		//examples.mazeExample();
-		examples.pickingExample();
+		//examples.pickingExample();
 		//examples.twoBallsExample();
 		//examples.twoLinesExample();
 		//examples.bigBangExample();
 		//examples.cubeSphereExample();
+		//examples.materialChangeExample();
 
 		// todo
 		//examples.renderingToFBOs();
-	}
-
-	private UUID createMaterial(SceneLayer sceneLayer, String texture, String normalTexture) {
-		MaterialObject materialObject = new MaterialObject(
-				sceneLayer.getRegistry(),
-				"Material",
-				new Vec3f(1, 1, 1),
-				1,
-				1,
-				new Vec3f(1, 1, 1)
-		);
-
-		TextureObject textureObjectVisual = new TextureObject(
-				sceneLayer.getRegistry(),
-				texture,
-				texture
-		);
-
-		NormalMapObject normalMapObject = new NormalMapObject(
-				sceneLayer.getRegistry(),
-				normalTexture,
-				normalTexture
-		);
-
-		textureObjectVisual.getUpdater().setParent(materialObject).sendUpdate();
-		normalMapObject.getUpdater().setParent(materialObject).sendUpdate();
-
-		return materialObject.getUuid();
 	}
 
 	public void orthographic() {
@@ -210,7 +184,7 @@ public class Examples {
 				for (int k = 0; k < 10; k++) {
 
 
-					Transform build = transformBuilder.reset().setPosition(new Vec3f(i*4, j*4, k*4)).build();
+					Transform build = transformBuilder.reset().setPosition(new Vec3f(i * 4, j * 4, k * 4)).build();
 
 
 					TransformObject newTransformObject = new TransformObject(
@@ -266,7 +240,7 @@ public class Examples {
 				guiSceneLayer.getRegistry(),
 				"TransformObjectGui",
 				new Vec3f(0, 0, 0),
-				QuaternionF.RotationX(Math.PI/2),
+				QuaternionF.RotationX(Math.PI / 2),
 				Vec3f.ONE.scale(100));
 
 		GeometryObject newGeometryObject = new GeometryObject(
@@ -418,10 +392,10 @@ public class Examples {
 
 					if (point < (weight * weight * weight * weight)) {
 
-							createCube(transformBuilder,
-									new Vec3f(i, j, k),
-									mainSceneLayer,
-									basicMaterial);
+						createCube(transformBuilder,
+								new Vec3f(i, j, k),
+								mainSceneLayer,
+								basicMaterial);
 
 					}
 				}
@@ -740,7 +714,7 @@ public class Examples {
 				for (int k = 0; k < 10; k++) {
 
 
-					Transform build = transformBuilder.reset().setPosition(new Vec3f(i*4, j*4, k*4)).build();
+					Transform build = transformBuilder.reset().setPosition(new Vec3f(i * 4, j * 4, k * 4)).build();
 
 
 					TransformObject newTransformObject = new TransformObject(
@@ -1047,7 +1021,7 @@ public class Examples {
 
 				for (int k = 0; k < 15; k++) {
 
-					Transform build = transformBuilder.reset().setPosition(new Vec3f(i*4, j*4, k*4)).build();
+					Transform build = transformBuilder.reset().setPosition(new Vec3f(i * 4, j * 4, k * 4)).build();
 
 					TransformObject newTransformObject = new TransformObject(
 							mainSceneLayer.getRegistry(),
@@ -1185,7 +1159,7 @@ public class Examples {
 
 				for (int k = 0; k < 60; k++) {
 
-					Transform build = transformBuilder.reset().setPosition(new Vec3f(i*4, j*4, k*4)).build();
+					Transform build = transformBuilder.reset().setPosition(new Vec3f(i * 4, j * 4, k * 4)).build();
 
 					TransformObject newTransformObject = new TransformObject(
 							mainSceneLayer.getRegistry(),
@@ -1326,7 +1300,7 @@ public class Examples {
 				for (int k = 0; k < 10; k++) {
 
 
-					Transform build = transformBuilder.reset().setPosition(new Vec3f(i*4, j*4, k*4)).build();
+					Transform build = transformBuilder.reset().setPosition(new Vec3f(i * 4, j * 4, k * 4)).build();
 
 
 					TransformObject newTransformObject = new TransformObject(
@@ -1505,7 +1479,6 @@ public class Examples {
 		mainSceneLayer.getGcsSystems().add((GcsSystem) new RigidBodyPhysicsSystem());
 
 
-
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
 		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
 		wip.setLockCursor(true).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
@@ -1628,7 +1601,7 @@ public class Examples {
 				createRigidBody(
 						mainSceneLayer.getRegistry(),
 						basicMaterial,
-						new Vec3f(5, (float) (j * 3.0 - 2 * i / 3.0), (float)  (i * 8)),
+						new Vec3f(5, (float) (j * 3.0 - 2 * i / 3.0), (float) (i * 8)),
 						mom,
 						ang,
 						RigidBodyObjectType.SPHERE
@@ -1637,7 +1610,6 @@ public class Examples {
 		}
 
 		mainSceneLayer.getGcsSystems().add((GcsSystem) new RigidBodyPhysicsSystem());
-
 
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
@@ -1766,9 +1738,7 @@ public class Examples {
 		}
 
 
-
 		mainSceneLayer.getGcsSystems().add((GcsSystem) new RigidBodyPhysicsSystem());
-
 
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
@@ -1894,14 +1864,148 @@ public class Examples {
 				RigidBodyObjectType.CUBOID);
 
 
-
 		mainSceneLayer.getGcsSystems().add((GcsSystem) new RigidBodyPhysicsSystem());
-
 
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
 		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
 		wip.setLockCursor(true).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
+
+		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
+		sceneLayers.add(mainSceneLayer);
+
+		GameLoop gameLoop = new GameLoop(
+				sceneLayers,
+				wip.build()
+		);
+
+		gameLoop.start();
+
+
+	}
+
+	public void materialChangeExample() {
+
+		TransformBuilder transformBuilder = new TransformBuilder();
+		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
+		Fog fog = new Fog(true, ambientLight, 0.0001f);
+
+		SceneLayer mainSceneLayer = new SceneLayer(
+				"MAIN",
+				ambientLight,
+				fog
+		);
+
+		LightObject lightObject = new LightObject(
+				mainSceneLayer.getRegistry(),
+				"MyFirstLight",
+				0.25f,
+				0.5f,
+				1f,
+				Vec3f.X,
+				0.1f,
+				Vec3f.Z.neg(),
+				1000,
+				LightingType.SPOT
+		);
+
+		LightObject directionalObject = new LightObject(
+				mainSceneLayer.getRegistry(),
+				"MySecondLight",
+				0.25f,
+				0.5f,
+				1f,
+				new Vec3f(0.529f, 0.808f, 0.922f),
+				0.2f,
+				Vec3f.Z.neg().add(Vec3f.X),
+				1,
+				LightingType.DIRECTIONAL
+		);
+
+		SkyBoxObject skyBoxObject = new SkyBoxObject(
+				mainSceneLayer.getRegistry(),
+				"SKY_BOX",
+				5000,
+				SkyboxType.SPHERE,
+				"textures/bw_gradient_skybox.png"
+		);
+
+		Transform cameraTransform = transformBuilder
+				.setPosition(new Vec3f(-10, 0, 0))
+				.setScale(Vec3f.ONE)
+				.setRotation(cameraRotation).build();
+
+		CameraObject cameraObject = new CameraObject(
+				mainSceneLayer.getRegistry(),
+				"Camera",
+				CameraProjectionType.PERSPECTIVE,
+				CameraObjectType.PRIMARY,
+				10000,
+				1.22f,
+				1080,
+				1,
+				1920
+		);
+
+		ControllableObject controllableObject = new ControllableObject(
+				mainSceneLayer.getRegistry(),
+				"Camera controller",
+				true,
+				true,
+				0.01f,
+				1);
+		TransformObject cameraTransformObject = new TransformObject(
+				mainSceneLayer.getRegistry(),
+				"CameraTransform",
+				cameraTransform.getPosition(),
+				cameraTransform.getRotation(),
+				cameraTransform.getScale());
+
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
+		createMaterial(mainSceneLayer, "material1", "textures/grassTile.jpg", "normalMaps/waterNormalMap.jpg");
+		createMaterial(mainSceneLayer, "material2", "textures/2k_neptune.jpg", "normalMaps/rockNormal.jpg");
+		createMaterial(mainSceneLayer, "material3", "textures/gunMetalTexture.jpg", "normalMaps/tangentNormalMap.jpg");
+		createMaterial(mainSceneLayer, "material4", "textures/sand_blocky.jpg", "normalMaps/plastic-normal.jpg");
+
+		for (int i = 0; i < 5; i++) {
+			for (int j = 0; j < 5; j++) {
+
+				Transform build = transformBuilder.reset().setPosition(new Vec3f(0, i * 4, j * 4)).build();
+
+				TransformObject newTransformObject = new TransformObject(
+						mainSceneLayer.getRegistry(),
+						"TransformObject" + i,
+						build.getPosition(),
+						build.getRotation(),
+						build.getScale());
+
+				GeometryObject newGeometryObject = new GeometryObject(
+						mainSceneLayer.getRegistry(),
+						"Geometry" + i,
+						Matrix4f.Identity,
+						basicMaterial,
+						"DEFAULT_CUBE"
+				);
+
+				newGeometryObject.getUpdater().setParent(newTransformObject).sendUpdate();
+			}
+		}
+
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
+		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setDebug(true);
+		wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
+		//wip.setLockCursor(true).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
+
+		mainSceneLayer.getGcsSystems().add((GcsSystem) new MaterialChangeSystem());
 
 		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
 		sceneLayers.add(mainSceneLayer);
@@ -2086,115 +2190,6 @@ public class Examples {
 		gameLoop.getExecutorService().execute(gameLoop::update);
 
 
-	}
-
-	public void picking() {
-
-		ArrayList<GameObject> gameObjects = new ArrayList<>();
-
-		GroupObject rootGameObject = new GroupObject();
-
-		TransformBuilder transformBuilder = new TransformBuilder();
-
-		Transform transform = transformBuilder
-				.setPosition(Vec3f.ZERO)
-				.build();
-
-		TransformObject wholeSceneTransform = new TransformObject(transform);
-		rootGameObject.getGameObjectData().attachGameObjectNode(wholeSceneTransform);
-
-		GeometryBuilder meshGroupLight = new GeometryBuilder("Mars")
-				.setGeometryType(GeometryType.MODEL)
-				.setInvertedNormals(false)
-				.setTexture("/textures/mars.jpg")
-				.setTransform(transformBuilder
-						.setScale(Vec3f.ONE).build());
-
-		GeometryBuilder mesh = new GeometryBuilder("BRICK_CUBE")
-				.setGeometryType(GeometryType.CUBOID)
-				.setTexture("/textures/brickwall.jpg")
-				.setNormalTexture("/normalMaps/brickwall_normal.jpg")
-				.setTransform(transformBuilder.build());
-
-		LightingBuilder pointLight = new LightingBuilder("PointLight")
-				.setLightingType(LightingType.POINT)
-				.setColour(new Vec3f(0.0f, 1.0f, 0.0f))
-				.setIntensity(10f);
-
-		LightingBuilder directionalLight = new LightingBuilder("DirectionalLight")
-				.setLightingType(LightingType.DIRECTIONAL)
-				.setColour(new Vec3f(1.0f, 1.0f, 1.0f))
-				.setDirection(new Vec3f(0.0f, 0.0f, -1.0f))
-				.setIntensity(1);
-
-		LightingBuilder spotLight = new LightingBuilder("SpotLight")
-				.setLightingType(LightingType.SPOT)
-				.setColour(new Vec3f(1.0f, 0.0f, 0.0f))
-				.setIntensity(100f)
-				.setDirection(Vec3f.Y)
-				.setConeAngle(0.1f);
-
-		Creation.CreateAxis(wholeSceneTransform);
-		Creation.CreateLight(pointLight, wholeSceneTransform, new Vec3f(0.0f, 0.0f, -10), Vec3f.ONE.scale(0.5f), QuaternionF.Identity, meshGroupLight);
-		Creation.CreateLight(spotLight, wholeSceneTransform, new Vec3f(0.0f, -10.0f, 0.0f), Vec3f.ONE.scale(0.5f), QuaternionF.Identity, meshGroupLight);
-		Creation.CreateLight(directionalLight, wholeSceneTransform, new Vec3f(0.0f, -10.0f, 0), Vec3f.ONE.scale(0.5f), QuaternionF.Identity, meshGroupLight);
-
-		Transform cameraTransform = transformBuilder
-				.setPosition(new Vec3f(-10, 0, 0))
-				.setScale(Vec3f.ONE)
-				.setRotation(cameraRotation)
-				.build();
-
-		CameraBuilder cameraBuilder = new CameraBuilder("Camera")
-				.setFov(1.22173f)
-				.setNear(1)
-				.setFar(10000);
-
-		TransformObject cameraTransformGameObject = new TransformObject(cameraTransform);
-		wholeSceneTransform.getGameObjectData().attachGameObjectNode(cameraTransformGameObject);
-		DirectTransformController directTransformController = new DirectTransformController(cameraTransformGameObject, false, true, 0.01f, 1);
-		CameraObject cameraObject = new CameraObject(cameraBuilder);
-		cameraTransformGameObject.getGameObjectData().attachGameObjectNode(cameraObject);
-		gameObjects.add(rootGameObject);
-
-		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder()
-				.setLockCursor(false);
-
-		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
-		Vec3f skyboxAmbientLight = new Vec3f(0.9f, 0.9f, 0.9f);
-		Fog fog = new Fog(true, ambientLight, 0.0003f);
-
-		Scene mainScene = new Scene(
-				"MAIN_SCENE",
-				new Shader("/shaders/mainVertex.glsl", "/shaders/mainFragment.glsl"),
-				null,
-				null,
-				new Shader("/shaders/pickingVertex.glsl", "/shaders/pickingFragment.glsl"),
-				null,
-				fog,
-				ambientLight,
-				skyboxAmbientLight
-		);
-
-		HashMap<String, ArrayList<GameObject>> layeredGameObjectsMap = new HashMap<>();
-
-		layeredGameObjectsMap.put("MAIN_SCENE", gameObjects);
-
-		ArrayList<Scene> sceneLayers = new ArrayList<>();
-		sceneLayers.add(mainScene);
-
-		GameLoop gameLoop = new GameLoop(sceneLayers,
-				wip.build(),
-				directTransformController,
-				layeredGameObjectsMap);
-
-		gameLoop.getExecutorService().execute(gameLoop::render);
-		gameLoop.getExecutorService().execute(gameLoop::update);
-
-		PickingSubscribable pickingSubscribable = new PickingSubscribable(gameObjects);
-		gameLoop.getGameBus().register(pickingSubscribable);
-		gameLoop.getExecutorService().execute(pickingSubscribable);
-
 	}*/
 
 
@@ -2239,8 +2234,33 @@ public class Examples {
 		}
 	}*/
 
+	private UUID createMaterial(SceneLayer sceneLayer, String name, String texture, String normalTexture) {
+		MaterialObject materialObject = new MaterialObject(
+				sceneLayer.getRegistry(),
+				name,
+				new Vec3f(1, 1, 1),
+				1,
+				1,
+				new Vec3f(1, 1, 1)
+		);
 
+		TextureObject textureObjectVisual = new TextureObject(
+				sceneLayer.getRegistry(),
+				texture,
+				texture
+		);
 
+		NormalMapObject normalMapObject = new NormalMapObject(
+				sceneLayer.getRegistry(),
+				normalTexture,
+				normalTexture
+		);
+
+		textureObjectVisual.getUpdater().setParent(materialObject).sendUpdate();
+		normalMapObject.getUpdater().setParent(materialObject).sendUpdate();
+
+		return materialObject.getUuid();
+	}
 
 	private UUID createBasicMaterial(SceneLayer sceneLayer) {
 		MaterialObject materialObject = new MaterialObject(
