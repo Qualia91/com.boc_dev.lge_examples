@@ -50,18 +50,17 @@ public class Examples {
 		//examples.terrainGenerationExample();
 		//examples.cubeWorldExample();
 		//examples.mazeExample();
-		examples.pickingExample();
+		//examples.pickingExample();
 		//examples.twoBallsExample();
 		//examples.twoLinesExample();
 		//examples.bigBangExample();
 		//examples.cubeSphereExample();
 		//examples.materialChangeExample();
+		examples.rigidBodyCameraControlExample();
 
 		// todo
 		//examples.renderingToFBOs();
 	}
-
-
 
 	public void orthographic() {
 
@@ -779,6 +778,156 @@ public class Examples {
 
 	}
 
+	public void rigidBodyCameraControlExample() {
+
+		TransformBuilder transformBuilder = new TransformBuilder();
+		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
+		Fog fog = new Fog(true, ambientLight, 0.0001f);
+
+		SceneLayer mainSceneLayer = new SceneLayer(
+				"MAIN",
+				ambientLight,
+				fog
+		);
+
+		LightObject lightObject = new LightObject(
+				mainSceneLayer.getRegistry(),
+				"MyFirstLight",
+				0.25f,
+				0.5f,
+				1f,
+				Vec3f.X,
+				0.1f,
+				Vec3f.Z.neg(),
+				1000,
+				LightingType.SPOT
+		);
+
+		LightObject directionalObject = new LightObject(
+				mainSceneLayer.getRegistry(),
+				"MySecondLight",
+				0.25f,
+				0.5f,
+				1f,
+				new Vec3f(0.529f, 0.808f, 0.922f),
+				0.2f,
+				Vec3f.Z.neg().add(Vec3f.X),
+				1,
+				LightingType.DIRECTIONAL
+		);
+
+		SkyBoxObject skyBoxObject = new SkyBoxObject(
+				mainSceneLayer.getRegistry(),
+				"SKY_BOX",
+				1000,
+				SkyboxType.SPHERE,
+				"textures/bw_gradient_skybox.png"
+		);
+
+		Transform cameraTransform = transformBuilder
+				.setPosition(new Vec3f(-10, 0, 0))
+				.setScale(Vec3f.ONE)
+				.setRotation(cameraRotation).build();
+
+		CameraObject cameraObject = new CameraObject(
+				mainSceneLayer.getRegistry(),
+				"Camera",
+				CameraProjectionType.PERSPECTIVE,
+				CameraObjectType.PRIMARY,
+				10000,
+				1.22f,
+				800,
+				1,
+				1000
+		);
+
+		ControllableObject controllableObject = new ControllableObject(
+				mainSceneLayer.getRegistry(),
+				"Camera controller",
+				true,
+				true,
+				0.01f,
+				0.5f);
+
+		TransformObject cameraTransformObject = new TransformObject(
+				mainSceneLayer.getRegistry(),
+				"CameraTransform",
+				cameraTransform.getPosition(),
+				cameraTransform.getRotation(),
+				cameraTransform.getScale());
+
+		RigidBodyObject rigidBodyObject = new RigidBodyObject(
+				mainSceneLayer.getRegistry(),
+				"RigidBodyObject",
+				Vec3d.ZERO,
+				Vec3d.ONE,
+				Vec3d.ZERO,
+				1,
+				RigidBodyObjectType.SPHERE
+		);
+
+		ImpulseObject impulseObject = new ImpulseObject(
+				mainSceneLayer.getRegistry(),
+				"ImpulseObject",
+				Vec3d.ZERO,
+				Vec3d.ZERO
+		);
+
+		rigidBodyObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		impulseObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
+
+		// demo 1: 2 lines interacting
+		for (int j = 0; j < 10; j++) {
+			for (int i = 0; i < 3; i++) {
+				Vec3d mom = Vec3d.Z.scale(i + j / 10.0);// * (j/10.0));
+				Vec3d ang = Vec3d.X.scale(0.001).scale(j);
+				//Vec3d ang = Vec3d.ZERO;
+				if (i > 0) {
+					mom = mom.neg();
+					//ang = ang.neg();
+					//ang = Vec3d.X.scale(0.01).scale(j);
+					ang = Vec3d.ZERO;
+				}
+
+				createRigidBody(
+						mainSceneLayer.getRegistry(),
+						basicMaterial,
+						new Vec3f(5, (float) (j * 3.0 - 2 * i / 3.0), (float) (i * 8)),
+						mom,
+						ang,
+						RigidBodyObjectType.SPHERE
+				);
+			}
+		}
+
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
+		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
+		wip.setLockCursor(true).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
+
+		mainSceneLayer.getGcsSystems().add((GcsSystem) new RigidBodyPhysicsSystem());
+
+		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
+		sceneLayers.add(mainSceneLayer);
+
+		GameLoop gameLoop = new GameLoop(
+				sceneLayers,
+				wip.build()
+		);
+
+		gameLoop.start();
+
+
+	}
+
 	public void mazeExample() {
 
 		TransformBuilder transformBuilder = new TransformBuilder();
@@ -863,8 +1012,8 @@ public class Examples {
 
 		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
 
-		int width = 100;
-		int height = 100;
+		int width = 20;
+		int height = 20;
 
 		RecursiveBackTracker recursiveBackTracker = new RecursiveBackTracker(width, height);
 		ArrayList<Cell> visited = recursiveBackTracker.getVisited();
