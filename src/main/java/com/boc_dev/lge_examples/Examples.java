@@ -2,6 +2,7 @@ package com.boc_dev.lge_examples;
 
 import com.boc_dev.lge_core.GameLoop;
 import com.boc_dev.lge_core.SceneLayer;
+import com.boc_dev.lge_model.gcs.Component;
 import com.boc_dev.lge_model.gcs.Registry;
 import com.boc_dev.lge_model.generated.components.*;
 import com.boc_dev.lge_model.generated.enums.*;
@@ -10,6 +11,7 @@ import com.boc_dev.lge_systems.MaterialChangeSystem;
 import com.boc_dev.lge_systems.MeshAddSystem;
 import com.boc_dev.lge_systems.MeshRemoveSystem;
 import com.boc_dev.lge_systems.boids.BoidSystem;
+import com.boc_dev.lge_systems.control.SelectionSystem;
 import com.boc_dev.lge_systems.generation.Cell;
 import com.boc_dev.lge_systems.generation.RecursiveBackTracker;
 import com.boc_dev.lge_systems.generation.TerrainGeneration;
@@ -48,7 +50,7 @@ public class Examples {
 		//examples.terrainGenerationExample();
 		//examples.cubeWorldExample();
 		//examples.mazeExample();
-		//examples.pickingExample();
+		examples.pickingExample();
 		//examples.twoBallsExample();
 		//examples.twoLinesExample();
 		//examples.bigBangExample();
@@ -58,6 +60,8 @@ public class Examples {
 		// todo
 		//examples.renderingToFBOs();
 	}
+
+
 
 	public void orthographic() {
 
@@ -1263,9 +1267,9 @@ public class Examples {
 				CameraObjectType.PRIMARY,
 				1000,
 				1.22f,
-				1080,
+				800,
 				0.1f,
-				1920
+				1000
 		);
 
 		ControllableObject controllableObject = new ControllableObject(
@@ -1288,6 +1292,7 @@ public class Examples {
 		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 
 		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
+		UUID selectedMaterial = createMaterial(mainSceneLayer, "material4", "textures/sand_blocky.jpg", "normalMaps/plastic-normal.jpg");
 
 		//mainSceneLayer.getGcsSystems().add((GcsSystem) new BoidSystem());
 
@@ -1318,20 +1323,12 @@ public class Examples {
 							"DEFAULT_SPHERE"
 					);
 
-					BoidObject boidObject = new BoidObject(
+					SelectableObject selectableObject = new SelectableObject(
 							mainSceneLayer.getRegistry(),
-							"Boid" + i,
-							0.001f,
-							0.1f,
-							new Vec3f(random.nextInt(10) - 5, random.nextInt(10) - 5, random.nextInt(10) - 5),
-							400,
-							10,
-							10,
-							0.001f,
-							2,
-							50,
-							Vec3f.ZERO,
-							0.001f
+							"Selectable",
+							false,
+							selectedMaterial,
+							basicMaterial
 					);
 
 					PickableObject pickableObject = new PickableObject(
@@ -1341,8 +1338,8 @@ public class Examples {
 					);
 
 					newGeometryObject.getUpdater().setParent(newTransformObject).sendUpdate();
-					boidObject.getUpdater().setParent(newTransformObject).sendUpdate();
 					pickableObject.getUpdater().setParent(newGeometryObject).sendUpdate();
+					selectableObject.getUpdater().setParent(newGeometryObject).sendUpdate();
 
 				}
 			}
@@ -1353,8 +1350,10 @@ public class Examples {
 		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
-		wip.setLockCursor(false).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
-		//wip.setLockCursor(false).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
+		//wip.setLockCursor(false).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
+		wip.setLockCursor(false).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
+
+		mainSceneLayer.getGcsSystems().add((GcsSystem) new SelectionSystem());
 
 		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
 		sceneLayers.add(mainSceneLayer);
@@ -1365,7 +1364,6 @@ public class Examples {
 		);
 
 		gameLoop.start();
-
 
 	}
 
@@ -1942,9 +1940,9 @@ public class Examples {
 				CameraObjectType.PRIMARY,
 				10000,
 				1.22f,
-				1080,
+				800,
 				1,
-				1920
+				1000
 		);
 
 		ControllableObject controllableObject = new ControllableObject(
@@ -2002,8 +2000,8 @@ public class Examples {
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
 		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setDebug(true);
-		wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
-		//wip.setLockCursor(true).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
+		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
+		wip.setLockCursor(true).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
 
 		mainSceneLayer.getGcsSystems().add((GcsSystem) new MaterialChangeSystem());
 
