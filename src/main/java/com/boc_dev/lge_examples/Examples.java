@@ -59,8 +59,8 @@ public class Examples {
 		//examples.materialChangeExample();
 		//examples.rigidBodyCameraControlExample();
 		//examples.rigidBodyWallExample();
-		//examples.particleSimExample();
-		examples.springsExample();
+		examples.particleSimExample();
+		//examples.springsExample();
 
 		// todo
 		//examples.renderingToFBOs();
@@ -2413,12 +2413,12 @@ public class Examples {
 		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 
-
+		Random random = new Random();
 		int cubeSideLength = 5;
 		for (int k = -cubeSideLength; k < cubeSideLength; k++) {
 			for (int j = -cubeSideLength; j < cubeSideLength; j++) {
 				for (int i = -cubeSideLength; i < cubeSideLength; i++) {
-					Vec3d velocity = new Vec3d(-i * 5, -j * 5, 100);
+					Vec3d velocity = new Vec3d(-i * 5, -j * 5, -j);
 					//Vec3d velocity = Vec3d.ZERO;
 
 					ParticleBodyObject particle = createParticle(
@@ -2428,21 +2428,25 @@ public class Examples {
 							velocity,
 							100);
 
-					// gravity
-					ParticleSimpleGravityObject particleSimpleGravityObject = new ParticleSimpleGravityObject(
-							mainSceneLayer.getRegistry(),
-							"Gravity",
-							9.81f
-					);
-					particleSimpleGravityObject.getUpdater().setParent(particle).sendUpdate();
+					if (random.nextBoolean()) {
 
-					// viscous drag
-					ParticleViscousDragObject particleViscousDragObject = new ParticleViscousDragObject(
-							mainSceneLayer.getRegistry(),
-							"particleViscousDragObject",
-							0.5f
-					);
-					particleViscousDragObject.getUpdater().setParent(particle).sendUpdate();
+						// gravity
+						ParticleSimpleGravityObject particleSimpleGravityObject = new ParticleSimpleGravityObject(
+								mainSceneLayer.getRegistry(),
+								"Gravity",
+								9.81f
+						);
+						particleSimpleGravityObject.getUpdater().setParent(particle).sendUpdate();
+
+						// viscous drag
+						ParticleViscousDragObject particleViscousDragObject = new ParticleViscousDragObject(
+								mainSceneLayer.getRegistry(),
+								"particleViscousDragObject",
+								0.5f
+						);
+						particleViscousDragObject.getUpdater().setParent(particle).sendUpdate();
+
+					}
 
 				}
 			}
