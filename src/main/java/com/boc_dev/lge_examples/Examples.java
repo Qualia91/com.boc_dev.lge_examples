@@ -62,7 +62,8 @@ public class Examples {
 		//examples.rigidBodyWallExample();
 		//examples.particleSimExample();
 		//examples.springsExample();
-		examples.rigidBodyForcesExample();
+		//examples.rigidBodyForcesExample();
+		examples.rigidBodyGravitationalPullExample();
 
 		// todo
 		//examples.renderingToFBOs();
@@ -2042,6 +2043,155 @@ public class Examples {
 					);
 
 					viscousDragObject.getUpdater().setParent(rigidBody).sendUpdate();
+
+				}
+			}
+		}
+
+
+		mainSceneLayer.getGcsSystems().add((GcsSystem) new RigidBodyPhysicsSystem());
+
+
+		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
+		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
+		wip.setLockCursor(true).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
+
+		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
+		sceneLayers.add(mainSceneLayer);
+
+		GameLoop gameLoop = new GameLoop(
+				sceneLayers,
+				wip.build()
+		);
+
+		gameLoop.start();
+
+
+	}
+
+	public void rigidBodyGravitationalPullExample() {
+
+		TransformBuilder transformBuilder = new TransformBuilder();
+		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
+		Fog fog = new Fog(true, ambientLight, 0.0001f);
+
+		SceneLayer mainSceneLayer = new SceneLayer(
+				"MAIN",
+				ambientLight,
+				fog
+		);
+
+		LightObject lightObject = new LightObject(
+				mainSceneLayer.getRegistry(),
+				"MyFirstLight",
+				0.25f,
+				0.5f,
+				1f,
+				Vec3f.X,
+				0.1f,
+				Vec3f.Z.neg(),
+				1000,
+				LightingType.SPOT
+		);
+
+		LightObject directionalObject = new LightObject(
+				mainSceneLayer.getRegistry(),
+				"MySecondLight",
+				0.25f,
+				0.5f,
+				1f,
+				new Vec3f(0.529f, 0.808f, 0.922f),
+				0.2f,
+				Vec3f.Z.neg().add(Vec3f.X),
+				1,
+				LightingType.DIRECTIONAL
+		);
+
+		SkyBoxObject skyBoxObject = new SkyBoxObject(
+				mainSceneLayer.getRegistry(),
+				"SKY_BOX",
+				1000,
+				SkyboxType.SPHERE,
+				"textures/bw_gradient_skybox.png"
+		);
+
+		Transform cameraTransform = transformBuilder
+				.setPosition(new Vec3f(-10, 0, 0))
+				.setScale(Vec3f.ONE)
+				.setRotation(cameraRotation).build();
+
+		CameraObject cameraObject = new CameraObject(
+				mainSceneLayer.getRegistry(),
+				"Camera",
+				CameraProjectionType.PERSPECTIVE,
+				CameraObjectType.PRIMARY,
+				10000,
+				1.22f,
+				800,
+				1,
+				1000
+		);
+//		CameraObject cameraObject = new CameraObject(
+//				mainSceneLayer.getRegistry(),
+//				"Camera",
+//				CameraProjectionType.PERSPECTIVE,
+//				CameraObjectType.PRIMARY,
+//				10000,
+//				1.22f,
+//				1080,
+//				1,
+//				1920
+//		);
+
+		ControllableObject controllableObject = new ControllableObject(
+				mainSceneLayer.getRegistry(),
+				"Camera controller",
+				true,
+				true,
+				0.01f,
+				1);
+		TransformObject cameraTransformObject = new TransformObject(
+				mainSceneLayer.getRegistry(),
+				"CameraTransform",
+				cameraTransform.getPosition(),
+				cameraTransform.getRotation(),
+				cameraTransform.getScale());
+
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
+
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+
+		Random random = new Random();
+		int cubeSideLength = 4;
+		for (int k = -cubeSideLength; k < cubeSideLength; k++) {
+			for (int j = -cubeSideLength; j < cubeSideLength; j++) {
+				for (int i = -cubeSideLength; i < cubeSideLength; i++) {
+					Vec3d mom = new Vec3d(random.nextInt(20) - 10, random.nextInt(20) - 10, random.nextInt(20) - 10);
+					Vec3d angMom = Vec3d.X.scale(random.nextInt(10) - 4).add(Vec3d.Y.scale(random.nextInt(10) - 4)).add(Vec3d.Z.scale(random.nextInt(10) - 4));
+					RigidBodyObject rigidBody = createRigidBody(
+							mainSceneLayer.getRegistry(),
+							basicMaterial,
+							new Vec3f(i * 10, j * 10, k * 10),
+							mom,
+							angMom.scale(0.02),
+							RigidBodyObjectType.SPHERE);
+
+					GravityObject gravity = new GravityObject(
+							mainSceneLayer.getRegistry(),
+							"Gravity",
+							5,
+							false
+					);
+
+					gravity.getUpdater().setParent(rigidBody).sendUpdate();
 
 				}
 			}
