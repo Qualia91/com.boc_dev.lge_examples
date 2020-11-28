@@ -18,6 +18,7 @@ import com.boc_dev.lge_systems.generation.TerrainGeneration;
 import com.boc_dev.graphics_library.WindowInitialisationParametersBuilder;
 import com.boc_dev.graphics_library.objects.lighting.Fog;
 import com.boc_dev.lge_systems.generation.WaterGeneration;
+import com.boc_dev.lge_systems.physics.ParticleSystem;
 import com.boc_dev.lge_systems.physics.RigidBodyPhysicsSystem;
 import com.boc_dev.maths.noise.Perlin2Df;
 import com.boc_dev.maths.noise.Perlin3D;
@@ -58,6 +59,8 @@ public class Examples {
 		//examples.materialChangeExample();
 		//examples.rigidBodyCameraControlExample();
 		//examples.rigidBodyWallExample();
+		//examples.particleSimExample();
+		examples.springsExample();
 
 		// todo
 		//examples.renderingToFBOs();
@@ -2311,6 +2314,338 @@ public class Examples {
 
 	}
 
+	public void particleSimExample() {
+
+		TransformBuilder transformBuilder = new TransformBuilder();
+		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
+		Fog fog = new Fog(true, ambientLight, 0.0001f);
+
+		SceneLayer mainSceneLayer = new SceneLayer(
+				"MAIN",
+				ambientLight,
+				fog
+		);
+
+		LightObject lightObject = new LightObject(
+				mainSceneLayer.getRegistry(),
+				"MyFirstLight",
+				0.25f,
+				0.5f,
+				1f,
+				Vec3f.X,
+				0.1f,
+				Vec3f.Z.neg(),
+				1000,
+				LightingType.SPOT
+		);
+
+		LightObject directionalObject = new LightObject(
+				mainSceneLayer.getRegistry(),
+				"MySecondLight",
+				0.25f,
+				0.5f,
+				1f,
+				new Vec3f(0.529f, 0.808f, 0.922f),
+				0.2f,
+				Vec3f.Z.neg().add(Vec3f.X),
+				1,
+				LightingType.DIRECTIONAL
+		);
+
+		SkyBoxObject skyBoxObject = new SkyBoxObject(
+				mainSceneLayer.getRegistry(),
+				"SKY_BOX",
+				1000,
+				SkyboxType.SPHERE,
+				"textures/bw_gradient_skybox.png"
+		);
+
+		Transform cameraTransform = transformBuilder
+				.setPosition(new Vec3f(-10, 0, 0))
+				.setScale(Vec3f.ONE)
+				.setRotation(cameraRotation).build();
+
+//		CameraObject cameraObject = new CameraObject(
+//				mainSceneLayer.getRegistry(),
+//				"Camera",
+//				CameraProjectionType.PERSPECTIVE,
+//				CameraObjectType.PRIMARY,
+//				10000,
+//				1.22f,
+//				800,
+//				1,
+//				1000
+//		);
+		CameraObject cameraObject = new CameraObject(
+				mainSceneLayer.getRegistry(),
+				"Camera",
+				CameraProjectionType.PERSPECTIVE,
+				CameraObjectType.PRIMARY,
+				10000,
+				1.22f,
+				1080,
+				1,
+				1920
+		);
+
+		ControllableObject controllableObject = new ControllableObject(
+				mainSceneLayer.getRegistry(),
+				"Camera controller",
+				true,
+				true,
+				0.01f,
+				1);
+		TransformObject cameraTransformObject = new TransformObject(
+				mainSceneLayer.getRegistry(),
+				"CameraTransform",
+				cameraTransform.getPosition(),
+				cameraTransform.getRotation(),
+				cameraTransform.getScale());
+
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
+
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+
+		int cubeSideLength = 5;
+		for (int k = -cubeSideLength; k < cubeSideLength; k++) {
+			for (int j = -cubeSideLength; j < cubeSideLength; j++) {
+				for (int i = -cubeSideLength; i < cubeSideLength; i++) {
+					Vec3d velocity = new Vec3d(-i * 5, -j * 5, 100);
+					//Vec3d velocity = Vec3d.ZERO;
+
+					ParticleBodyObject particle = createParticle(
+							mainSceneLayer.getRegistry(),
+							basicMaterial,
+							new Vec3f(i * 10, j * 10, k * 10),
+							velocity,
+							100);
+
+					// gravity
+					ParticleSimpleGravityObject particleSimpleGravityObject = new ParticleSimpleGravityObject(
+							mainSceneLayer.getRegistry(),
+							"Gravity",
+							9.81f
+					);
+					particleSimpleGravityObject.getUpdater().setParent(particle).sendUpdate();
+
+					// viscous drag
+					ParticleViscousDragObject particleViscousDragObject = new ParticleViscousDragObject(
+							mainSceneLayer.getRegistry(),
+							"particleViscousDragObject",
+							0.5f
+					);
+					particleViscousDragObject.getUpdater().setParent(particle).sendUpdate();
+
+				}
+			}
+		}
+
+		mainSceneLayer.getGcsSystems().add((GcsSystem) new ParticleSystem());
+
+
+		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
+		wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
+		//wip.setLockCursor(true).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
+
+		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
+		sceneLayers.add(mainSceneLayer);
+
+		GameLoop gameLoop = new GameLoop(
+				sceneLayers,
+				wip.build()
+		);
+
+		gameLoop.start();
+
+
+	}
+
+	public void springsExample() {
+
+		TransformBuilder transformBuilder = new TransformBuilder();
+		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
+		Fog fog = new Fog(true, ambientLight, 0.0001f);
+
+		SceneLayer mainSceneLayer = new SceneLayer(
+				"MAIN",
+				ambientLight,
+				fog
+		);
+
+		LightObject lightObject = new LightObject(
+				mainSceneLayer.getRegistry(),
+				"MyFirstLight",
+				0.25f,
+				0.5f,
+				1f,
+				Vec3f.X,
+				0.1f,
+				Vec3f.Z.neg(),
+				1000,
+				LightingType.SPOT
+		);
+
+		LightObject directionalObject = new LightObject(
+				mainSceneLayer.getRegistry(),
+				"MySecondLight",
+				0.25f,
+				0.5f,
+				1f,
+				new Vec3f(0.529f, 0.808f, 0.922f),
+				0.2f,
+				Vec3f.Z.neg().add(Vec3f.X),
+				1,
+				LightingType.DIRECTIONAL
+		);
+
+		SkyBoxObject skyBoxObject = new SkyBoxObject(
+				mainSceneLayer.getRegistry(),
+				"SKY_BOX",
+				1000,
+				SkyboxType.SPHERE,
+				"textures/bw_gradient_skybox.png"
+		);
+
+		Transform cameraTransform = transformBuilder
+				.setPosition(new Vec3f(-10, 0, 0))
+				.setScale(Vec3f.ONE)
+				.setRotation(cameraRotation).build();
+
+//		CameraObject cameraObject = new CameraObject(
+//				mainSceneLayer.getRegistry(),
+//				"Camera",
+//				CameraProjectionType.PERSPECTIVE,
+//				CameraObjectType.PRIMARY,
+//				10000,
+//				1.22f,
+//				800,
+//				1,
+//				1000
+//		);
+		CameraObject cameraObject = new CameraObject(
+				mainSceneLayer.getRegistry(),
+				"Camera",
+				CameraProjectionType.PERSPECTIVE,
+				CameraObjectType.PRIMARY,
+				10000,
+				1.22f,
+				1080,
+				1,
+				1920
+		);
+
+		ControllableObject controllableObject = new ControllableObject(
+				mainSceneLayer.getRegistry(),
+				"Camera controller",
+				true,
+				true,
+				0.01f,
+				1);
+		TransformObject cameraTransformObject = new TransformObject(
+				mainSceneLayer.getRegistry(),
+				"CameraTransform",
+				cameraTransform.getPosition(),
+				cameraTransform.getRotation(),
+				cameraTransform.getScale());
+
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
+
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+
+		for (int i = 0; i < 2; i++) {
+			ParticleBodyObject particle = createParticle(
+					mainSceneLayer.getRegistry(),
+					basicMaterial,
+					new Vec3f(0, i*10, 0),
+					Vec3d.ZERO,
+					1);
+
+			// viscous drag
+			ParticleSpringObject particleSpringObject = new ParticleSpringObject(
+					mainSceneLayer.getRegistry(),
+					"particleViscousDragObject",
+					-0.05f,
+					10,
+					-1
+			);
+			particleSpringObject.getUpdater().setParent(particle).sendUpdate();
+		}
+
+		for (int i = 0; i < 2; i++) {
+			ParticleBodyObject particle = createParticle(
+					mainSceneLayer.getRegistry(),
+					basicMaterial,
+					new Vec3f(0, i*10, 10),
+					Vec3d.ZERO,
+					1);
+
+			// viscous drag
+			ParticleSpringObject particleSpringObject = new ParticleSpringObject(
+					mainSceneLayer.getRegistry(),
+					"particleViscousDragObject",
+					-0.05f,
+					10,
+					-1
+			);
+			particleSpringObject.getUpdater().setParent(particle).sendUpdate();
+		}
+
+		ParticleBodyObject particle = createParticle(
+				mainSceneLayer.getRegistry(),
+				basicMaterial,
+				new Vec3f(0, 5, 5),
+				Vec3d.ZERO,
+				1000);
+
+		// viscous drag
+		ParticleSpringObject particleSpringObject = new ParticleSpringObject(
+				mainSceneLayer.getRegistry(),
+				"particleViscousDragObject",
+				-0.05f,
+				10,
+				-1
+		);
+		particleSpringObject.getUpdater().setParent(particle).sendUpdate();
+
+
+
+
+		mainSceneLayer.getGcsSystems().add((GcsSystem) new ParticleSystem());
+
+
+		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
+		wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
+		//wip.setLockCursor(true).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
+
+		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
+		sceneLayers.add(mainSceneLayer);
+
+		GameLoop gameLoop = new GameLoop(
+				sceneLayers,
+				wip.build()
+		);
+
+		gameLoop.start();
+
+
+	}
+
 	/*
 	private TransformObject createFboGameObjects(ArrayList<GameObject> fboOneGameObjects) {
 
@@ -2603,6 +2938,40 @@ public class Examples {
 
 		newGeometryObject.getUpdater().setParent(newTransformObject).sendUpdate();
 
+	}
+
+	private ParticleBodyObject createParticle(Registry registry,
+	                             UUID basicMaterial,
+	                             Vec3f position,
+	                             Vec3d velocity,
+	                             float mass) {
+		TransformObject transformObject1 = new TransformObject(
+				registry,
+				"TransformObject",
+				position,
+				QuaternionF.Identity,
+				Vec3f.ONE);
+
+		String modelFile = "DEFAULT_SPHERE";
+
+		GeometryObject geometryObject1 = new GeometryObject(
+				registry,
+				"Geometry",
+				Matrix4f.Identity,
+				basicMaterial,
+				modelFile
+		);
+
+		ParticleBodyObject particleBodyObject = new ParticleBodyObject(
+				registry,
+				"ParticleBody",
+				mass,
+				velocity
+		);
+		geometryObject1.getUpdater().setParent(transformObject1).sendUpdate();
+		particleBodyObject.getUpdater().setParent(transformObject1).sendUpdate();
+
+		return particleBodyObject;
 	}
 
 	private void createRigidBody(Registry registry,
