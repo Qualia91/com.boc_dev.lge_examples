@@ -2519,17 +2519,6 @@ public class Examples {
 				.setScale(Vec3f.ONE)
 				.setRotation(cameraRotation).build();
 
-//		CameraObject cameraObject = new CameraObject(
-//				mainSceneLayer.getRegistry(),
-//				"Camera",
-//				CameraProjectionType.PERSPECTIVE,
-//				CameraObjectType.PRIMARY,
-//				10000,
-//				1.22f,
-//				800,
-//				1,
-//				1000
-//		);
 		CameraObject cameraObject = new CameraObject(
 				mainSceneLayer.getRegistry(),
 				"Camera",
@@ -2537,10 +2526,21 @@ public class Examples {
 				CameraObjectType.PRIMARY,
 				10000,
 				1.22f,
-				1080,
+				800,
 				1,
-				1920
+				1000
 		);
+//		CameraObject cameraObject = new CameraObject(
+//				mainSceneLayer.getRegistry(),
+//				"Camera",
+//				CameraProjectionType.PERSPECTIVE,
+//				CameraObjectType.PRIMARY,
+//				10000,
+//				1.22f,
+//				1080,
+//				1,
+//				1920
+//		);
 
 		ControllableObject controllableObject = new ControllableObject(
 				mainSceneLayer.getRegistry(),
@@ -2630,8 +2630,8 @@ public class Examples {
 
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
-		wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
-		//wip.setLockCursor(true).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
+		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
+		wip.setLockCursor(true).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
 
 		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
 		sceneLayers.add(mainSceneLayer);
