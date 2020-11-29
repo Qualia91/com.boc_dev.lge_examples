@@ -46,7 +46,7 @@ public class Examples {
 	public static void main(String[] args) {
 		Examples examples = new Examples();
 		//examples.orthographic();
-		//examples.boidsExample();
+		examples.boidsExample();
 		//examples.meshTypeConversionExample();
 		//examples.instancedRenderingExample();
 		//examples.terrainGenerationExample();
@@ -63,7 +63,7 @@ public class Examples {
 		//examples.particleSimExample();
 		//examples.springsExample();
 		//examples.rigidBodyForcesExample();
-		examples.rigidBodyGravitationalPullExample();
+		//examples.rigidBodyGravitationalPullExample();
 
 		// todo
 		//examples.renderingToFBOs();
