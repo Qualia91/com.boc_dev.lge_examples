@@ -30,6 +30,7 @@ import com.boc_dev.maths.objects.srt.TransformBuilder;
 import com.boc_dev.maths.objects.vector.Vec2i;
 import com.boc_dev.maths.objects.vector.Vec3d;
 import com.boc_dev.maths.objects.vector.Vec3f;
+import com.boc_dev.maths.points_on_a_sphere.Main;
 import com.boc_dev.physics_library.rigid_body_dynamics_verbose.forces.Gravity;
 
 import java.util.ArrayList;
@@ -47,7 +48,7 @@ public class Examples {
 	public static void main(String[] args) {
 		Examples examples = new Examples();
 		//examples.orthographic();
-		examples.timerExample();
+		//examples.timerExample();
 		//examples.boidsExample();
 		//examples.meshTypeConversionExample();
 		//examples.instancedRenderingExample();
@@ -63,10 +64,27 @@ public class Examples {
 		//examples.rigidBodyCameraControlExample();
 		//examples.rigidBodyWallExample();
 		//examples.particleSimExample();
+		//examples.particleSimGravityExample();
 		//examples.springsExample();
 		//examples.rigidBodyForcesExample();
 		//examples.rigidBodyGravitationalPullExample();
+		examples.marchingCubesExample();
 
+//		int cubeIndex = examples.calcCubeIndex(0, 0, 0, new Perlin3D(1000, 1000));
+//
+//		int[] ints = MarchingCubesTables.TRIANGLE_TABLE[cubeIndex];
+//
+//		for (int anInt : ints) {
+//
+//			int edgeFirstVertex = MarchingCubesTables.EDGE_FIRST_VERTEX[anInt];
+//			int edgeSecondVertex = MarchingCubesTables.EDGE_SECOND_VERTEX[anInt];
+//
+//			System.out.println();
+//
+//			// get 2 cube corners from these index's
+//
+//
+//		}
 		// todo
 		//examples.renderingToFBOs();
 	}
@@ -163,7 +181,7 @@ public class Examples {
 		UUID selectedMaterial = createMaterial(mainSceneLayer, "material4", "textures/sand_blocky.jpg", "normalMaps/plastic-normal.jpg");
 
 		Transform sceneTransform = transformBuilder.reset()
-				.setRotation(QuaternionF.RotationX(Math.PI/4))
+				.setRotation(QuaternionF.RotationX(Math.PI / 4))
 				.setScale(new Vec3f(100, 100, 100))
 				.build();
 
@@ -568,6 +586,171 @@ public class Examples {
 
 		gameLoop.start();
 
+
+	}
+
+	public void marchingCubesExample() {
+
+		TransformBuilder transformBuilder = new TransformBuilder();
+
+		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
+		Fog fog = new Fog(true, ambientLight, 0.0001f);
+
+		SceneLayer mainSceneLayer = new SceneLayer(
+				"MAIN",
+				ambientLight,
+				fog
+		);
+
+		LightObject lightObject = new LightObject(
+				mainSceneLayer.getRegistry(),
+				"MyFirstLight",
+				0.25f,
+				0.5f,
+				1f,
+				Vec3f.X,
+				0.1f,
+				Vec3f.Z.neg(),
+				1000,
+				LightingType.SPOT
+		);
+
+		Transform cameraTransform = transformBuilder
+				.setPosition(new Vec3f(-10, 0, 0))
+				.setScale(Vec3f.ONE)
+				.setRotation(cameraRotation).build();
+
+		CameraObject cameraObject = new CameraObject(
+				mainSceneLayer.getRegistry(),
+				"Camera",
+				CameraProjectionType.PERSPECTIVE,
+				CameraObjectType.PRIMARY,
+				1000,
+				1.22f,
+				1200,
+				0.01f,
+				1600
+		);
+
+		ControllableObject controllableObject = new ControllableObject(
+				mainSceneLayer.getRegistry(),
+				"Camera controller",
+				true,
+				true,
+				0.01f,
+				0.1f);
+		TransformObject cameraTransformObject = new TransformObject(
+				mainSceneLayer.getRegistry(),
+				"CameraTransform",
+				cameraTransform.getPosition(),
+				cameraTransform.getRotation(),
+				cameraTransform.getScale());
+
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		mainSceneLayer.getGcsSystems().add((GcsSystem) new BoidSystem());
+
+		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
+
+		ArrayList<Vec3f> vertices = new ArrayList<>();
+
+		int segmentSize = 10;
+		Perlin3D perlin3D = new Perlin3D(500, segmentSize);
+		int size = 50;
+		for (int i = 0; i < size; i++) {
+			for (int j = 0; j < size; j++) {
+				for (int k = 0; k < size; k++) {
+
+					Cube cube = calcCubeIndex(i, j, k, perlin3D);
+
+					int[] ints = MarchingCubesTables.TRIANGLE_TABLE[cube.getCubeIndex()];
+
+					for (int anInt : ints) {
+
+						int edgeFirstVertex = MarchingCubesTables.EDGE_FIRST_VERTEX[anInt];
+						int edgeSecondVertex = MarchingCubesTables.EDGE_SECOND_VERTEX[anInt];
+
+						// get 2 cube corners from these index's
+						vertices.add((cube.getVertices()[edgeFirstVertex].add(cube.getVertices()[edgeSecondVertex])).scale(0.5f));
+
+					}
+				}
+			}
+		}
+
+		MeshObject meshObject = new MeshObject(
+				mainSceneLayer.getRegistry(),
+				"MarchingCubes",
+				vertices.toArray(new Vec3f[vertices.size()])
+		);
+
+		TransformObject pointLightTransformObject = new TransformObject(
+				mainSceneLayer.getRegistry(),
+				"CameraTransform",
+				new Vec3f(1, 1, 1),
+				QuaternionF.Identity,
+				Vec3f.ONE);
+
+		LightObject pointLight = new LightObject(
+				mainSceneLayer.getRegistry(),
+				"PointLight",
+				0.25f,
+				0.5f,
+				1f,
+				new Vec3f(1, 1, 1),
+				0.1f,
+				Vec3f.Z.neg(),
+				50,
+				LightingType.POINT
+		);
+		pointLight.getUpdater().setParent(pointLightTransformObject).sendUpdate();
+
+		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
+		wip.setLockCursor(true).setWindowWidth(800).setWindowHeight(600).setDebug(true);
+
+		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
+		sceneLayers.add(mainSceneLayer);
+
+		GameLoop gameLoop = new GameLoop(
+				sceneLayers,
+				wip.build()
+		);
+
+		gameLoop.start();
+
+
+	}
+
+	public Cube calcCubeIndex(int i, int j, int k, Perlin3D perlin3D) {
+
+		final int edgeLength = 2;
+		int cubeVertexIndex = 0;
+		int cubeIndex = 0;
+		int cubeIndexRHS = 1;
+
+		Vec3f[] vertex = new Vec3f[8];
+
+		for (int y = 0; y < edgeLength; ++y) {
+			for (int z = 0; z < edgeLength; ++z) {
+				for (int x = z % edgeLength; x >= 0 && x < edgeLength; x += (z == 0 ? 1 : -1)) {
+					vertex[cubeVertexIndex] = new Vec3f(i + x, j + y, k + z);
+					double point = perlin3D.getPoint(i + x, j + y, k + z);
+
+					cubeVertexIndex++;
+
+					if (point > 0) {
+						cubeIndex |= cubeIndexRHS;
+					}
+
+					cubeIndexRHS <<= 1;
+				}
+			}
+		}
+
+		return new Cube(cubeIndex, vertex);
 
 	}
 
@@ -2207,7 +2390,7 @@ public class Examples {
 		);
 
 		Transform cameraTransform = transformBuilder
-				.setPosition(new Vec3f(-10, 0, 0))
+				.setPosition(new Vec3f(-100, 0, 0))
 				.setScale(Vec3f.ONE)
 				.setRotation(cameraRotation).build();
 
@@ -2859,6 +3042,153 @@ public class Examples {
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
 		wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
 		//wip.setLockCursor(true).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
+
+		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
+		sceneLayers.add(mainSceneLayer);
+
+		GameLoop gameLoop = new GameLoop(
+				sceneLayers,
+				wip.build()
+		);
+
+		gameLoop.start();
+
+
+	}
+
+	public void particleSimGravityExample() {
+
+		TransformBuilder transformBuilder = new TransformBuilder();
+		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
+		Fog fog = new Fog(true, ambientLight, 0.0001f);
+
+		SceneLayer mainSceneLayer = new SceneLayer(
+				"MAIN",
+				ambientLight,
+				fog
+		);
+
+		LightObject lightObject = new LightObject(
+				mainSceneLayer.getRegistry(),
+				"MyFirstLight",
+				0.25f,
+				0.5f,
+				1f,
+				Vec3f.X,
+				0.1f,
+				Vec3f.Z.neg(),
+				1000,
+				LightingType.SPOT
+		);
+
+		LightObject directionalObject = new LightObject(
+				mainSceneLayer.getRegistry(),
+				"MySecondLight",
+				0.25f,
+				0.5f,
+				1f,
+				new Vec3f(0.529f, 0.808f, 0.922f),
+				0.2f,
+				Vec3f.Z.neg().add(Vec3f.X),
+				1,
+				LightingType.DIRECTIONAL
+		);
+
+		SkyBoxObject skyBoxObject = new SkyBoxObject(
+				mainSceneLayer.getRegistry(),
+				"SKY_BOX",
+				1000,
+				SkyboxType.SPHERE,
+				"textures/bw_gradient_skybox.png"
+		);
+
+		Transform cameraTransform = transformBuilder
+				.setPosition(new Vec3f(-100, 0, 0))
+				.setScale(Vec3f.ONE)
+				.setRotation(cameraRotation).build();
+
+//		CameraObject cameraObject = new CameraObject(
+//				mainSceneLayer.getRegistry(),
+//				"Camera",
+//				CameraProjectionType.PERSPECTIVE,
+//				CameraObjectType.PRIMARY,
+//				10000,
+//				1.22f,
+//				800,
+//				1,
+//				1000
+//		);
+		CameraObject cameraObject = new CameraObject(
+				mainSceneLayer.getRegistry(),
+				"Camera",
+				CameraProjectionType.PERSPECTIVE,
+				CameraObjectType.PRIMARY,
+				10000,
+				1.22f,
+				1080,
+				1,
+				1920
+		);
+
+		ControllableObject controllableObject = new ControllableObject(
+				mainSceneLayer.getRegistry(),
+				"Camera controller",
+				true,
+				true,
+				0.01f,
+				1);
+		TransformObject cameraTransformObject = new TransformObject(
+				mainSceneLayer.getRegistry(),
+				"CameraTransform",
+				cameraTransform.getPosition(),
+				cameraTransform.getRotation(),
+				cameraTransform.getScale());
+
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
+
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		Random random = new Random();
+		int cubeSideLength = 5;
+		for (int k = -cubeSideLength; k < cubeSideLength; k++) {
+			for (int j = -cubeSideLength; j < cubeSideLength; j++) {
+				for (int i = -cubeSideLength; i < cubeSideLength; i++) {
+					Vec3d velocity = new Vec3d(random.nextInt(10) - 5, random.nextInt(10) - 5, random.nextInt(10) - 5);
+					//Vec3d velocity = Vec3d.ZERO;
+
+					ParticleBodyObject particle = createParticle(
+							mainSceneLayer.getRegistry(),
+							basicMaterial,
+							new Vec3f(i * 10, j * 10, k * 10),
+							velocity,
+							100);
+
+					// gravity
+					GravityObject particleSimpleGravityObject = new GravityObject(
+							mainSceneLayer.getRegistry(),
+							"Gravity",
+							1,
+							false
+					);
+					particleSimpleGravityObject.getUpdater().setParent(particle).sendUpdate();
+
+				}
+			}
+		}
+
+		mainSceneLayer.getGcsSystems().add((GcsSystem) new ParticleSystem());
+
+
+		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
+		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
+		wip.setLockCursor(true).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
 
 		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
 		sceneLayers.add(mainSceneLayer);
