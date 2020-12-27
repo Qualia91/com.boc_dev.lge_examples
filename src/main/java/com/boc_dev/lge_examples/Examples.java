@@ -1413,7 +1413,7 @@ public class Examples {
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
 		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setDebug(true);
 		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
-		wip.setLockCursor(true).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
+		wip.setLockCursor(true).setWindowWidth(1000).setWindowHeight(800).setInstanceArraySizeLimit(5000);
 
 		mainSceneLayer.getGcsSystems().add((GcsSystem) new MeshAddSystem());
 		mainSceneLayer.getGcsSystems().add((GcsSystem) new MeshRemoveSystem());
