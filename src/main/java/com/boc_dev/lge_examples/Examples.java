@@ -54,7 +54,7 @@ public class Examples {
 		//examples.twoLinesExample();
 		//examples.bigBangExample();
 		//examples.cubeSphereExample();
-		//examples.materialChangeExample();
+		examples.materialChangeExample();
 		//examples.rigidBodyCameraControlExample();
 		//examples.rigidBodyWallExample();
 		//examples.particleSimExample();
@@ -62,7 +62,7 @@ public class Examples {
 		//examples.springsExample();
 		//examples.rigidBodyForcesExample();
 		//examples.rigidBodyGravitationalPullExample();
-		examples.marchingCubesExample();
+		//examples.marchingCubesExample();
 
 		// todo
 		//examples.renderingToFBOs();
@@ -157,7 +157,6 @@ public class Examples {
 		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 
 		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
-		UUID selectedMaterial = createMaterial(mainSceneLayer, "material4", "textures/sand_blocky.jpg", "normalMaps/plastic-normal.jpg");
 
 		Transform sceneTransform = transformBuilder.reset()
 				.setRotation(QuaternionF.RotationX(Math.PI / 4))
@@ -314,7 +313,7 @@ public class Examples {
 				"SKY_BOX",
 				1000,
 				SkyboxType.SPHERE,
-				"textures/bw_gradient_skybox.png"
+				"/textures/bw_gradient_skybox.png"
 		);
 
 		Transform cameraTransform = transformBuilder
@@ -433,7 +432,7 @@ public class Examples {
 				"SKY_BOX",
 				500,
 				SkyboxType.SPHERE,
-				"textures/bw_gradient_skybox.png"
+				"/textures/bw_gradient_skybox.png"
 		);
 
 		Transform cameraTransform = transformBuilder
@@ -598,7 +597,7 @@ public class Examples {
 				"SKY_BOX",
 				999,
 				SkyboxType.SPHERE,
-				"textures/black.png"
+				"/textures/black.png"
 		);
 
 		Transform cameraTransform = transformBuilder
@@ -651,7 +650,7 @@ public class Examples {
 		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 
-		UUID material = createMaterial(mainSceneLayer, "material", "textures/small_wall_texture.png", "normalMaps/small_wall_normal_map.png");
+		UUID material = createMaterial(mainSceneLayer, "material", "/textures/small_wall_texture.png", "/normalMaps/small_wall_normal_map.png");
 
 		MarchingCubeGenerationObject marchingCubeGenerationObject = new MarchingCubeGenerationObject(
 				mainSceneLayer.getRegistry(),
@@ -725,7 +724,7 @@ public class Examples {
 				"SKY_BOX",
 				5000,
 				SkyboxType.SPHERE,
-				"textures/bw_gradient_skybox.png"
+				"/textures/bw_gradient_skybox.png"
 		);
 
 		Transform cameraTransform = transformBuilder
@@ -874,7 +873,7 @@ public class Examples {
 				"SKY_BOX",
 				1000,
 				SkyboxType.SPHERE,
-				"textures/bw_gradient_skybox.png"
+				"/textures/bw_gradient_skybox.png"
 		);
 
 		Transform cameraTransform = transformBuilder
@@ -1030,7 +1029,7 @@ public class Examples {
 				"SKY_BOX",
 				1000,
 				SkyboxType.SPHERE,
-				"textures/bw_gradient_skybox.png"
+				"/textures/bw_gradient_skybox.png"
 		);
 
 		Transform cameraTransform = transformBuilder
@@ -1180,7 +1179,7 @@ public class Examples {
 				"SKY_BOX",
 				1000,
 				SkyboxType.SPHERE,
-				"textures/bw_gradient_skybox.png"
+				"/textures/bw_gradient_skybox.png"
 		);
 
 		Transform cameraTransform = transformBuilder
@@ -1336,7 +1335,7 @@ public class Examples {
 				"SKY_BOX",
 				5000,
 				SkyboxType.SPHERE,
-				"textures/bw_gradient_skybox.png"
+				"/textures/bw_gradient_skybox.png"
 		);
 
 		Transform cameraTransform = transformBuilder
@@ -1474,7 +1473,7 @@ public class Examples {
 				"SKY_BOX",
 				5000,
 				SkyboxType.SPHERE,
-				"textures/bw_gradient_skybox.png"
+				"/textures/bw_gradient_skybox.png"
 		);
 
 		Transform cameraTransform = transformBuilder
@@ -1610,7 +1609,7 @@ public class Examples {
 				"SKY_BOX",
 				500,
 				SkyboxType.SPHERE,
-				"textures/bw_gradient_skybox.png"
+				"/textures/bw_gradient_skybox.png"
 		);
 
 		Transform cameraTransform = transformBuilder
@@ -1650,9 +1649,7 @@ public class Examples {
 		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 
 		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
-		UUID selectedMaterial = createMaterial(mainSceneLayer, "material4", "textures/sand_blocky.jpg", "normalMaps/plastic-normal.jpg");
-
-		//mainSceneLayer.getGcsSystems().add((GcsSystem) new BoidSystem());
+		UUID selectedMaterial = createMaterial(mainSceneLayer, "material4", "/textures/black.png", "/normalMaps/plastic-normal.jpg");
 
 		Random random = new Random();
 
@@ -1768,7 +1765,7 @@ public class Examples {
 				"SKY_BOX",
 				1000,
 				SkyboxType.SPHERE,
-				"textures/bw_gradient_skybox.png"
+				"/textures/bw_gradient_skybox.png"
 		);
 
 		Transform cameraTransform = transformBuilder
@@ -1895,7 +1892,7 @@ public class Examples {
 				"SKY_BOX",
 				1000,
 				SkyboxType.SPHERE,
-				"textures/bw_gradient_skybox.png"
+				"/textures/bw_gradient_skybox.png"
 		);
 
 		Transform cameraTransform = transformBuilder
@@ -2028,7 +2025,7 @@ public class Examples {
 				"SKY_BOX",
 				1000,
 				SkyboxType.SPHERE,
-				"textures/bw_gradient_skybox.png"
+				"/textures/bw_gradient_skybox.png"
 		);
 
 		Transform cameraTransform = transformBuilder
@@ -2157,7 +2154,7 @@ public class Examples {
 				"SKY_BOX",
 				1000,
 				SkyboxType.SPHERE,
-				"textures/bw_gradient_skybox.png"
+				"/textures/bw_gradient_skybox.png"
 		);
 
 		Transform cameraTransform = transformBuilder
@@ -2314,7 +2311,7 @@ public class Examples {
 				"SKY_BOX",
 				1000,
 				SkyboxType.SPHERE,
-				"textures/bw_gradient_skybox.png"
+				"/textures/bw_gradient_skybox.png"
 		);
 
 		Transform cameraTransform = transformBuilder
@@ -2463,7 +2460,7 @@ public class Examples {
 				"SKY_BOX",
 				1000,
 				SkyboxType.SPHERE,
-				"textures/bw_gradient_skybox.png"
+				"/textures/bw_gradient_skybox.png"
 		);
 
 		Transform cameraTransform = transformBuilder
@@ -2589,7 +2586,7 @@ public class Examples {
 				"SKY_BOX",
 				5000,
 				SkyboxType.SPHERE,
-				"textures/bw_gradient_skybox.png"
+				"/textures/bw_gradient_skybox.png"
 		);
 
 		Transform cameraTransform = transformBuilder
@@ -2725,7 +2722,7 @@ public class Examples {
 				"SKY_BOX",
 				1000,
 				SkyboxType.SPHERE,
-				"textures/bw_gradient_skybox.png"
+				"/textures/bw_gradient_skybox.png"
 		);
 
 		Transform cameraTransform = transformBuilder
@@ -2868,7 +2865,7 @@ public class Examples {
 				"SKY_BOX",
 				1000,
 				SkyboxType.SPHERE,
-				"textures/bw_gradient_skybox.png"
+				"/textures/bw_gradient_skybox.png"
 		);
 
 		Transform cameraTransform = transformBuilder
@@ -3027,7 +3024,7 @@ public class Examples {
 				"SKY_BOX",
 				1000,
 				SkyboxType.SPHERE,
-				"textures/bw_gradient_skybox.png"
+				"/textures/bw_gradient_skybox.png"
 		);
 
 		Transform cameraTransform = transformBuilder
@@ -3174,7 +3171,7 @@ public class Examples {
 				"SKY_BOX",
 				1000,
 				SkyboxType.SPHERE,
-				"textures/bw_gradient_skybox.png"
+				"/textures/bw_gradient_skybox.png"
 		);
 
 		Transform cameraTransform = transformBuilder
