@@ -54,7 +54,7 @@ public class Examples {
 		//examples.twoLinesExample();
 		//examples.bigBangExample();
 		//examples.cubeSphereExample();
-		examples.materialChangeExample();
+		//examples.materialChangeExample();
 		//examples.rigidBodyCameraControlExample();
 		//examples.rigidBodyWallExample();
 		//examples.particleSimExample();
@@ -62,7 +62,7 @@ public class Examples {
 		//examples.springsExample();
 		//examples.rigidBodyForcesExample();
 		//examples.rigidBodyGravitationalPullExample();
-		//examples.marchingCubesExample();
+		examples.marchingCubesExample();
 
 		// todo
 		//examples.renderingToFBOs();
@@ -1649,7 +1649,7 @@ public class Examples {
 		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 
 		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
-		UUID selectedMaterial = createMaterial(mainSceneLayer, "material4", "/textures/black.png", "/normalMaps/plastic-normal.jpg");
+		UUID selectedMaterial = createMaterial(mainSceneLayer, "material4", "/textures/grassTile.jpg", "/normalMaps/plastic-normal.jpg");
 
 		Random random = new Random();
 
@@ -2626,10 +2626,10 @@ public class Examples {
 		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 
 		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
-		createMaterial(mainSceneLayer, "material1", "textures/grassTile.jpg", "normalMaps/waterNormalMap.jpg");
-		createMaterial(mainSceneLayer, "material2", "textures/2k_neptune.jpg", "normalMaps/rockNormal.jpg");
-		createMaterial(mainSceneLayer, "material3", "textures/gunMetalTexture.jpg", "normalMaps/tangentNormalMap.jpg");
-		createMaterial(mainSceneLayer, "material4", "textures/sand_blocky.jpg", "normalMaps/plastic-normal.jpg");
+		createMaterial(mainSceneLayer, "material1", "/textures/black.png", "/normalMaps/waterNormalMap.jpg");
+		createMaterial(mainSceneLayer, "material2", "/textures/brickwall.jpg", "/normalMaps/brickwall_normal.jpg");
+		createMaterial(mainSceneLayer, "material3", "/textures/grassTile.jpg", "/normalMaps/waterNormalMap.jpg");
+		createMaterial(mainSceneLayer, "material4", "/textures/small_wall_texture.png", "/normalMaps/plastic-normal.jpg");
 
 		for (int i = 0; i < 5; i++) {
 			for (int j = 0; j < 5; j++) {
