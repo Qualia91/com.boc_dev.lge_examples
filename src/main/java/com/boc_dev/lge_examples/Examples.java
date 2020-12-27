@@ -572,6 +572,7 @@ public class Examples {
 
 		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
 		Fog fog = new Fog(true, new Vec3f(0, 0, 0), 0.05f);
+		//Fog fog = new Fog(true, new Vec3f(0, 0, 0), 0.00001f);
 
 		SceneLayer mainSceneLayer = new SceneLayer(
 				"MAIN",
@@ -665,8 +666,8 @@ public class Examples {
 		mainSceneLayer.getGcsSystems().add((GcsSystem) new MarchingCubesGeneration());
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
-		//wip.setLockCursor(true).setWindowWidth(800).setWindowHeight(600).setDebug(true);
-		wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
+		wip.setLockCursor(true).setWindowWidth(800).setWindowHeight(600).setDebug(true);
+		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
 
 		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
 		sceneLayers.add(mainSceneLayer);
