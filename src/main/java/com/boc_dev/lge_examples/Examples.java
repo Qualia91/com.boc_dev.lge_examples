@@ -62,10 +62,284 @@ public class Examples {
 		//examples.springsExample();
 		//examples.rigidBodyForcesExample();
 		//examples.rigidBodyGravitationalPullExample();
-		examples.marchingCubesExample();
+		//examples.marchingCubesExample();
+		examples.gui();
 
 		// todo
 		//examples.renderingToFBOs();
+	}
+
+	public void gui() {
+
+		TransformBuilder transformBuilder = new TransformBuilder();
+		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
+		Fog fog = new Fog(true, ambientLight, 0.0001f);
+
+		SceneLayer mainSceneLayer = new SceneLayer(
+				"MAIN",
+				ambientLight,
+				fog
+		);
+
+		LightObject lightObject = new LightObject(
+				mainSceneLayer.getRegistry(),
+				"MyFirstLight",
+				0.25f,
+				0.5f,
+				1f,
+				Vec3f.X,
+				0.1f,
+				Vec3f.Z.neg(),
+				1000,
+				LightingType.SPOT
+		);
+
+		LightObject directionalObject = new LightObject(
+				mainSceneLayer.getRegistry(),
+				"MySecondLight",
+				0.25f,
+				0.5f,
+				1f,
+				new Vec3f(0.529f, 0.808f, 0.922f),
+				0.2f,
+				Vec3f.Z.neg().add(Vec3f.X),
+				1,
+				LightingType.DIRECTIONAL
+		);
+
+		SkyBoxObject skyBoxObject = new SkyBoxObject(
+				mainSceneLayer.getRegistry(),
+				"SKY_BOX",
+				1000,
+				SkyboxType.SPHERE,
+				"/textures/bw_gradient_skybox.png"
+		);
+
+		Transform cameraTransform = transformBuilder
+				.setPosition(new Vec3f(-10, 0, 0))
+				.setScale(Vec3f.ONE)
+				.setRotation(cameraRotation).build();
+
+		CameraObject cameraObject = new CameraObject(
+				mainSceneLayer.getRegistry(),
+				"Camera",
+				CameraProjectionType.PERSPECTIVE,
+				CameraObjectType.PRIMARY,
+				10000,
+				1.22f,
+				800,
+				1,
+				1000
+		);
+
+		ControllableObject controllableObject = new ControllableObject(
+				mainSceneLayer.getRegistry(),
+				"Camera controller",
+				false,
+				true,
+				0.01f,
+				1);
+		TransformObject cameraTransformObject = new TransformObject(
+				mainSceneLayer.getRegistry(),
+				"CameraTransform",
+				cameraTransform.getPosition(),
+				cameraTransform.getRotation(),
+				cameraTransform.getScale());
+
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
+
+		mainSceneLayer.getGcsSystems().add((GcsSystem) new BoidSystem());
+
+		Random random = new Random();
+
+		for (int i = 0; i < 10; i++) {
+
+			for (int j = 0; j < 10; j++) {
+
+				for (int k = 0; k < 10; k++) {
+
+
+					Transform build = transformBuilder.reset().setPosition(new Vec3f(i * 4, j * 4, k * 4)).build();
+
+
+					TransformObject newTransformObject = new TransformObject(
+							mainSceneLayer.getRegistry(),
+							"TransformObject" + i,
+							build.getPosition(),
+							build.getRotation(),
+							build.getScale());
+
+					GeometryObject newGeometryObject = new GeometryObject(
+							mainSceneLayer.getRegistry(),
+							"Geometry" + i,
+							Matrix4f.Identity,
+							basicMaterial,
+							"DEFAULT_SPHERE"
+					);
+
+					BoidObject boidObject = new BoidObject(
+							mainSceneLayer.getRegistry(),
+							"Boid" + i,
+							0.001f,
+							0.1f,
+							new Vec3f(random.nextInt(10) - 5, random.nextInt(10) - 5, random.nextInt(10) - 5),
+							400,
+							10,
+							10,
+							0.001f,
+							2,
+							50,
+							Vec3f.ZERO,
+							0.001f
+					);
+					newGeometryObject.getUpdater().setParent(newTransformObject).sendUpdate();
+					boidObject.getUpdater().setParent(newTransformObject).sendUpdate();
+
+				}
+			}
+		}
+
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
+		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
+		wip.setLockCursor(false).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
+
+		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
+		sceneLayers.add(mainSceneLayer);
+
+
+
+		// gui layer
+
+		Vec3f guiAmbientLight = new Vec3f(1, 1, 1);
+
+		SceneLayer guiSceneLayer = new SceneLayer(
+				"GUI",
+				guiAmbientLight,
+				Fog.NOFOG
+		);
+
+		Transform guiCameraTransform = transformBuilder
+				.setPosition(new Vec3f(-100, 0, 0))
+				.setScale(Vec3f.ONE)
+				.setRotation(cameraRotation).build();
+
+		CameraObject guiCameraObject = new CameraObject(
+				guiSceneLayer.getRegistry(),
+				"GuiCamera",
+				CameraProjectionType.ORTHOGRAPHIC,
+				CameraObjectType.PRIMARY,
+				1000,
+				0,
+				100,
+				-1000,
+				100
+		);
+
+		TransformObject guiCameraTransformObject = new TransformObject(
+				guiSceneLayer.getRegistry(),
+				"CameraTransform",
+				guiCameraTransform.getPosition(),
+				guiCameraTransform.getRotation(),
+				guiCameraTransform.getScale());
+
+		guiCameraObject.getUpdater().setParent(guiCameraTransformObject).sendUpdate();
+
+		Transform guiSceneTransform = transformBuilder.reset()
+				.setScale(new Vec3f(200, 200, 200))
+				.build();
+
+		TransformObject guiSceneTransformObject = new TransformObject(
+				guiSceneLayer.getRegistry(),
+				"TransformObject",
+				guiSceneTransform.getPosition(),
+				guiSceneTransform.getRotation(),
+				guiSceneTransform.getScale());
+
+		UUID selectedMaterial = createMaterial(guiSceneLayer, "material1", "/textures/black.png", "/normalMaps/waterNormalMap.jpg");
+
+		for (int i = 0; i < 2; i++) {
+
+			for (int j = 0; j < 1; j++) {
+
+				Transform build = transformBuilder.reset()
+						.setPosition(new Vec3f(0, -5 + i * 2, j))
+						.build();
+
+				TransformObject newTransformObject = new TransformObject(
+						guiSceneLayer.getRegistry(),
+						"TransformObject" + i,
+						build.getPosition(),
+						QuaternionF.RotationZ(Math.PI),
+						build.getScale());
+
+				GeometryObject newGeometryObject = new GeometryObject(
+						guiSceneLayer.getRegistry(),
+						"Geometry" + i,
+						Matrix4f.Identity,
+						basicMaterial,
+						"DEFAULT_SQUARE"
+				);
+
+				SelectableObject selectableObject = new SelectableObject(
+						guiSceneLayer.getRegistry(),
+						"Selectable",
+						false,
+						selectedMaterial,
+						basicMaterial
+				);
+
+				PickableObject pickableObject = new PickableObject(
+						guiSceneLayer.getRegistry(),
+						"Pickable " + i + " " + j,
+						true
+				);
+
+
+				newGeometryObject.getUpdater().setParent(newTransformObject).sendUpdate();
+				newTransformObject.getUpdater().setParent(guiSceneTransformObject).sendUpdate();
+
+				pickableObject.getUpdater().setParent(newGeometryObject).sendUpdate();
+				selectableObject.getUpdater().setParent(newGeometryObject).sendUpdate();
+
+
+				TextObject guiTextObject = new TextObject(
+						guiSceneLayer.getRegistry(),
+						"TEXT",
+						16,
+						"fonts/verandaGreenBold.png",
+						16,
+						"HELLO, WORLD!"
+				);
+				guiTextObject.getUpdater().setParent(newTransformObject).sendUpdate();
+
+
+			}
+		}
+
+		guiSceneLayer.getGcsSystems().add((GcsSystem) new SelectionSystem());
+
+		sceneLayers.add(guiSceneLayer);
+
+
+
+
+		GameLoop gameLoop = new GameLoop(
+				sceneLayers,
+				wip.build()
+		);
+
+		gameLoop.start();
+
+
 	}
 
 	public void orthographic() {
