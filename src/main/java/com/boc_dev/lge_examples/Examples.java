@@ -15,6 +15,7 @@ import com.boc_dev.lge_systems.control.TimerSystem;
 import com.boc_dev.lge_systems.generation.*;
 import com.boc_dev.graphics_library.WindowInitialisationParametersBuilder;
 import com.boc_dev.graphics_library.objects.lighting.Fog;
+import com.boc_dev.lge_systems.gui.ButtonSystem;
 import com.boc_dev.lge_systems.physics.ParticleSystem;
 import com.boc_dev.lge_systems.physics.RigidBodyPhysicsSystem;
 import com.boc_dev.maths.noise.Perlin2Df;
@@ -268,69 +269,70 @@ public class Examples {
 
 		for (int i = 0; i < 2; i++) {
 
-			for (int j = 0; j < 1; j++) {
+			Transform build = transformBuilder.reset()
+					.setPosition(new Vec3f(0, -4.5f, 2 * i))
+					.build();
 
-				Transform build = transformBuilder.reset()
-						.setPosition(new Vec3f(0, -5 + i * 2, j))
-						.build();
+			TransformObject newTransformObject = new TransformObject(
+					guiSceneLayer.getRegistry(),
+					"TransformObject" + i,
+					build.getPosition(),
+					QuaternionF.RotationZ(Math.PI),
+					build.getScale());
 
-				TransformObject newTransformObject = new TransformObject(
-						guiSceneLayer.getRegistry(),
-						"TransformObject" + i,
-						build.getPosition(),
-						QuaternionF.RotationZ(Math.PI),
-						build.getScale());
+			GeometryObject newGeometryObject = new GeometryObject(
+					guiSceneLayer.getRegistry(),
+					"Geometry" + i,
+					Matrix4f.Identity,
+					basicMaterial,
+					"DEFAULT_SQUARE"
+			);
 
-				GeometryObject newGeometryObject = new GeometryObject(
-						guiSceneLayer.getRegistry(),
-						"Geometry" + i,
-						Matrix4f.Identity,
-						basicMaterial,
-						"DEFAULT_SQUARE"
-				);
+			SelectableObject selectableObject = new SelectableObject(
+					guiSceneLayer.getRegistry(),
+					"Selectable " + i,
+					false,
+					selectedMaterial,
+					basicMaterial
+			);
 
-				SelectableObject selectableObject = new SelectableObject(
-						guiSceneLayer.getRegistry(),
-						"Selectable",
-						false,
-						selectedMaterial,
-						basicMaterial
-				);
+			PickableObject pickableObject = new PickableObject(
+					guiSceneLayer.getRegistry(),
+					"Pickable " + i,
+					true
+			);
 
-				PickableObject pickableObject = new PickableObject(
-						guiSceneLayer.getRegistry(),
-						"Pickable " + i + " " + j,
-						true
-				);
+			ButtonObject buttonObject = new ButtonObject(
+					guiSceneLayer.getRegistry(),
+					"buttonObj " + i,
+					true,
+					"Button Pressed " + i
+			);
 
+			newGeometryObject.getUpdater().setParent(newTransformObject).sendUpdate();
+			newTransformObject.getUpdater().setParent(guiSceneTransformObject).sendUpdate();
 
-				newGeometryObject.getUpdater().setParent(newTransformObject).sendUpdate();
-				newTransformObject.getUpdater().setParent(guiSceneTransformObject).sendUpdate();
+			pickableObject.getUpdater().setParent(newGeometryObject).sendUpdate();
+			selectableObject.getUpdater().setParent(newGeometryObject).sendUpdate();
+			buttonObject.getUpdater().setParent(newGeometryObject).sendUpdate();
 
-				pickableObject.getUpdater().setParent(newGeometryObject).sendUpdate();
-				selectableObject.getUpdater().setParent(newGeometryObject).sendUpdate();
-
-
-				TextObject guiTextObject = new TextObject(
-						guiSceneLayer.getRegistry(),
-						"TEXT",
-						16,
-						"fonts/verandaGreenBold.png",
-						16,
-						"HELLO, WORLD!"
-				);
-				guiTextObject.getUpdater().setParent(newTransformObject).sendUpdate();
+			TextObject guiTextObject = new TextObject(
+					guiSceneLayer.getRegistry(),
+					"TEXT",
+					16,
+					"fonts/verandaGreenBold.png",
+					16,
+					"HELLO, WORLD!"
+			);
+			guiTextObject.getUpdater().setParent(newTransformObject).sendUpdate();
 
 
-			}
 		}
 
 		guiSceneLayer.getGcsSystems().add((GcsSystem) new SelectionSystem());
+		guiSceneLayer.getGcsSystems().add((GcsSystem) new ButtonSystem());
 
 		sceneLayers.add(guiSceneLayer);
-
-
-
 
 		GameLoop gameLoop = new GameLoop(
 				sceneLayers,
