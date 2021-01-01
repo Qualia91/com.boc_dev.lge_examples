@@ -319,6 +319,7 @@ public class Examples {
 		}
 
 		Transform textTransform = transformBuilder.reset()
+				.setScale(80)
 				.setRotation(QuaternionF.Identity)
 				.setPosition(new Vec3f(0, 500, -500))
 				.build();
