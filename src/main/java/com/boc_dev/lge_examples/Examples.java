@@ -16,9 +16,10 @@ import com.boc_dev.lge_systems.generation.*;
 import com.boc_dev.graphics_library.WindowInitialisationParametersBuilder;
 import com.boc_dev.graphics_library.objects.lighting.Fog;
 import com.boc_dev.lge_systems.gui.ButtonSystem;
+import com.boc_dev.lge_systems.gui.ListSystem;
 import com.boc_dev.lge_systems.physics.ParticleSystem;
 import com.boc_dev.lge_systems.physics.RigidBodyPhysicsSystem;
-import com.boc_dev.lge_systems.text.TextChangeSystem;
+import com.boc_dev.lge_systems.gui.TextChangeSystem;
 import com.boc_dev.maths.noise.Perlin2Df;
 import com.boc_dev.maths.noise.Perlin3D;
 import com.boc_dev.maths.objects.QuaternionF;
@@ -256,6 +257,7 @@ public class Examples {
 		guiCameraObject.getUpdater().setParent(guiCameraTransformObject).sendUpdate();
 
 		Transform guiSceneTransform = transformBuilder.reset()
+				.setPosition(new Vec3f(0, 4.4f, -2.5f))
 				.setScale(new Vec3f(200, 200, 200))
 				.build();
 
@@ -268,10 +270,17 @@ public class Examples {
 
 		UUID selectedMaterial = createMaterial(guiSceneLayer, "material1", "/textures/black.png", "/normalMaps/waterNormalMap.jpg");
 
-		for (int i = 0; i < 2; i++) {
+		ListObject listObject = new ListObject(
+				guiSceneLayer.getRegistry(),
+				"ListObject",
+				1.1f
+		);
+
+		listObject.getUpdater().setParent(guiSceneTransformObject).sendUpdate();
+
+		for (int i = 0; i < 6; i++) {
 
 			Transform build = transformBuilder.reset()
-					.setPosition(new Vec3f(0, -4.5f, 2 * i))
 					.build();
 
 			TransformObject newTransformObject = new TransformObject(
@@ -311,8 +320,7 @@ public class Examples {
 			);
 
 			Transform textTransform = transformBuilder.reset()
-					.setPosition(new Vec3f(1, -0.3f, 0))
-					.setScale(0.1f)
+					.setPosition(new Vec3f(1, 0.5f, 0.8f))
 					.build();
 
 			TransformObject textTransformObject = new TransformObject(
@@ -325,14 +333,16 @@ public class Examples {
 			TextObject guiTextObject = new TextObject(
 					guiSceneLayer.getRegistry(),
 					"ButtonText" + i,
+					FontAlignment.CENTER,
 					"montserrat_light",
+					0.1f,
 					"Button " + i
 			);
 
 			textTransformObject.getUpdater().setParent(newTransformObject).sendUpdate();
 			guiTextObject.getUpdater().setParent(textTransformObject).sendUpdate();
 			newGeometryObject.getUpdater().setParent(newTransformObject).sendUpdate();
-			newTransformObject.getUpdater().setParent(guiSceneTransformObject).sendUpdate();
+			newTransformObject.getUpdater().setParent(listObject).sendUpdate();
 
 			pickableObject.getUpdater().setParent(newGeometryObject).sendUpdate();
 			selectableObject.getUpdater().setParent(newGeometryObject).sendUpdate();
@@ -341,9 +351,8 @@ public class Examples {
 		}
 
 		Transform textTransform = transformBuilder.reset()
-				.setScale(50)
 				.setRotation(QuaternionF.Identity)
-				.setPosition(new Vec3f(0, 900, -700))
+				.setPosition(new Vec3f(0, 970, -700))
 				.build();
 
 		TransformObject textTransformObject = new TransformObject(
@@ -356,15 +365,41 @@ public class Examples {
 		TextObject guiTextObject = new TextObject(
 				guiSceneLayer.getRegistry(),
 				"GameEngineTimeText",
+				FontAlignment.BEGIN,
 				"montserrat_light",
+				30,
 				"Hello, World!@!"
 		);
 
 		guiTextObject.getUpdater().setParent(textTransformObject).sendUpdate();
 
+		Transform buttonResultTransform = transformBuilder.reset()
+				.setRotation(QuaternionF.Identity)
+				.setPosition(new Vec3f(0, 970, -790))
+				.build();
+
+		TransformObject buttonResultTransformObject = new TransformObject(
+				guiSceneLayer.getRegistry(),
+				"buttonResultTransformObject",
+				buttonResultTransform.getPosition(),
+				buttonResultTransform.getRotation(),
+				buttonResultTransform.getScale());
+
+		TextObject buttonResultTextObject = new TextObject(
+				guiSceneLayer.getRegistry(),
+				"buttonResult",
+				FontAlignment.BEGIN,
+				"montserrat_light",
+				40,
+				"Button Result"
+		);
+
+		buttonResultTextObject.getUpdater().setParent(buttonResultTransformObject).sendUpdate();
+
 		guiSceneLayer.getGcsSystems().add((GcsSystem) new SelectionSystem());
 		guiSceneLayer.getGcsSystems().add((GcsSystem) new ButtonSystem());
 		guiSceneLayer.getGcsSystems().add((GcsSystem) new TextChangeSystem());
+		guiSceneLayer.getGcsSystems().add((GcsSystem) new ListSystem());
 
 		sceneLayers.add(guiSceneLayer);
 
