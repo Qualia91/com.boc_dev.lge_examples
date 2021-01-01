@@ -18,6 +18,7 @@ import com.boc_dev.graphics_library.objects.lighting.Fog;
 import com.boc_dev.lge_systems.gui.ButtonSystem;
 import com.boc_dev.lge_systems.physics.ParticleSystem;
 import com.boc_dev.lge_systems.physics.RigidBodyPhysicsSystem;
+import com.boc_dev.lge_systems.text.TextChangeSystem;
 import com.boc_dev.maths.noise.Perlin2Df;
 import com.boc_dev.maths.noise.Perlin3D;
 import com.boc_dev.maths.objects.QuaternionF;
@@ -158,11 +159,11 @@ public class Examples {
 
 		Random random = new Random();
 
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 5; i++) {
 
-			for (int j = 0; j < 4; j++) {
+			for (int j = 0; j < 5; j++) {
 
-				for (int k = 0; k < 4; k++) {
+				for (int k = 0; k < 5; k++) {
 
 
 					Transform build = transformBuilder.reset().setPosition(new Vec3f(i * 4, j * 4, k * 4)).build();
@@ -309,6 +310,27 @@ public class Examples {
 					"Button Pressed " + i
 			);
 
+			Transform textTransform = transformBuilder.reset()
+					.setPosition(new Vec3f(1, -0.3f, 0))
+					.setScale(0.1f)
+					.build();
+
+			TransformObject textTransformObject = new TransformObject(
+					guiSceneLayer.getRegistry(),
+					"TransformObject" + i,
+					textTransform.getPosition(),
+					QuaternionF.RotationZ(Math.PI),
+					textTransform.getScale());
+
+			TextObject guiTextObject = new TextObject(
+					guiSceneLayer.getRegistry(),
+					"ButtonText" + i,
+					"montserrat_light",
+					"Button " + i
+			);
+
+			textTransformObject.getUpdater().setParent(newTransformObject).sendUpdate();
+			guiTextObject.getUpdater().setParent(textTransformObject).sendUpdate();
 			newGeometryObject.getUpdater().setParent(newTransformObject).sendUpdate();
 			newTransformObject.getUpdater().setParent(guiSceneTransformObject).sendUpdate();
 
@@ -319,9 +341,9 @@ public class Examples {
 		}
 
 		Transform textTransform = transformBuilder.reset()
-				.setScale(80)
+				.setScale(50)
 				.setRotation(QuaternionF.Identity)
-				.setPosition(new Vec3f(0, 500, -500))
+				.setPosition(new Vec3f(0, 900, -700))
 				.build();
 
 		TransformObject textTransformObject = new TransformObject(
@@ -333,7 +355,7 @@ public class Examples {
 
 		TextObject guiTextObject = new TextObject(
 				guiSceneLayer.getRegistry(),
-				"TEXT",
+				"GameEngineTimeText",
 				"montserrat_light",
 				"Hello, World!@!"
 		);
@@ -342,6 +364,7 @@ public class Examples {
 
 		guiSceneLayer.getGcsSystems().add((GcsSystem) new SelectionSystem());
 		guiSceneLayer.getGcsSystems().add((GcsSystem) new ButtonSystem());
+		guiSceneLayer.getGcsSystems().add((GcsSystem) new TextChangeSystem());
 
 		sceneLayers.add(guiSceneLayer);
 
