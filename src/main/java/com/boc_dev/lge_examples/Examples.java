@@ -158,11 +158,11 @@ public class Examples {
 
 		Random random = new Random();
 
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 4; i++) {
 
-			for (int j = 0; j < 10; j++) {
+			for (int j = 0; j < 4; j++) {
 
-				for (int k = 0; k < 10; k++) {
+				for (int k = 0; k < 4; k++) {
 
 
 					Transform build = transformBuilder.reset().setPosition(new Vec3f(i * 4, j * 4, k * 4)).build();
@@ -316,18 +316,28 @@ public class Examples {
 			selectableObject.getUpdater().setParent(newGeometryObject).sendUpdate();
 			buttonObject.getUpdater().setParent(newGeometryObject).sendUpdate();
 
-			TextObject guiTextObject = new TextObject(
-					guiSceneLayer.getRegistry(),
-					"TEXT",
-					16,
-					"fonts/verandaGreenBold.png",
-					16,
-					"HELLO, WORLD!"
-			);
-			guiTextObject.getUpdater().setParent(newTransformObject).sendUpdate();
-
-
 		}
+
+		Transform textTransform = transformBuilder.reset()
+				.setRotation(QuaternionF.Identity)
+				.setPosition(new Vec3f(0, 500, -500))
+				.build();
+
+		TransformObject textTransformObject = new TransformObject(
+				guiSceneLayer.getRegistry(),
+				"TextTransformObject",
+				textTransform.getPosition(),
+				textTransform.getRotation(),
+				textTransform.getScale());
+
+		TextObject guiTextObject = new TextObject(
+				guiSceneLayer.getRegistry(),
+				"TEXT",
+				"montserrat_light",
+				"Hello, World!@!"
+		);
+
+		guiTextObject.getUpdater().setParent(textTransformObject).sendUpdate();
 
 		guiSceneLayer.getGcsSystems().add((GcsSystem) new SelectionSystem());
 		guiSceneLayer.getGcsSystems().add((GcsSystem) new ButtonSystem());
@@ -512,17 +522,6 @@ public class Examples {
 
 //				pickableObject.getUpdater().setParent(newGeometryObject).sendUpdate();
 //				selectableObject.getUpdater().setParent(newGeometryObject).sendUpdate();
-
-
-				TextObject textObject = new TextObject(
-						mainSceneLayer.getRegistry(),
-						"TEXT",
-						16,
-						"fonts/verandaGreenBold.png",
-						16,
-						"HELLO, WORLD!"
-				);
-				textObject.getUpdater().setParent(newTransformObject).sendUpdate();
 
 
 			}
