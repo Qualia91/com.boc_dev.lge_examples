@@ -31,6 +31,9 @@ import com.boc_dev.maths.objects.vector.Vec2i;
 import com.boc_dev.maths.objects.vector.Vec3d;
 import com.boc_dev.maths.objects.vector.Vec3f;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.UUID;
@@ -47,7 +50,7 @@ public class Examples {
 		Examples examples = new Examples();
 		//examples.orthographic();
 		//examples.timerExample();
-		examples.scriptExample();
+		//examples.scriptExample();
 		//examples.boidsExample();
 		//examples.meshTypeConversionExample();
 		//examples.instancedRenderingExample();
@@ -189,10 +192,32 @@ public class Examples {
 		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 
+		String code = "";
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader("example_lua_script.lua"));
+			StringWriter w = new StringWriter();
+
+			try {
+				String line = reader.readLine();
+				while (null != line) {
+					w.append(line).append("\n");
+					line = reader.readLine();
+				}
+
+				code = w.toString();
+			} finally {
+				reader.close();
+				w.close();
+			}
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
 		ScriptObject scriptObject = new ScriptObject(
 				mainSceneLayer.getRegistry(),
 				"ScriptObject",
-				"print(\"Hello, World!\")"
+				code
 		);
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();

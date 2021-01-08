@@ -6,5 +6,6 @@ module com.boc_dev.lge_examples {
 	requires com.boc_dev.event_bus;
 	requires com.boc_dev.lge_systems;
 	requires com.boc_dev.physics_library;
+	requires luaj.jse.modules;
 	exports com.boc_dev.lge_examples;
 }
