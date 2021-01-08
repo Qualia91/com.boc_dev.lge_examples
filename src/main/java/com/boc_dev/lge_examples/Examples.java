@@ -20,6 +20,7 @@ import com.boc_dev.lge_systems.gui.ListSystem;
 import com.boc_dev.lge_systems.physics.ParticleSystem;
 import com.boc_dev.lge_systems.physics.RigidBodyPhysicsSystem;
 import com.boc_dev.lge_systems.gui.TextChangeSystem;
+import com.boc_dev.lge_systems.scripting.ScriptingSystem;
 import com.boc_dev.maths.noise.Perlin2Df;
 import com.boc_dev.maths.noise.Perlin3D;
 import com.boc_dev.maths.objects.QuaternionF;
@@ -46,6 +47,7 @@ public class Examples {
 		Examples examples = new Examples();
 		//examples.orthographic();
 		//examples.timerExample();
+		examples.scriptExample();
 		//examples.boidsExample();
 		//examples.meshTypeConversionExample();
 		//examples.instancedRenderingExample();
@@ -66,10 +68,148 @@ public class Examples {
 		//examples.rigidBodyForcesExample();
 		//examples.rigidBodyGravitationalPullExample();
 		//examples.marchingCubesExample();
-		examples.gui();
+		//examples.gui();
 
 		// todo
 		//examples.renderingToFBOs();
+	}
+
+	public void scriptExample() {
+
+		TransformBuilder transformBuilder = new TransformBuilder();
+		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
+		Fog fog = new Fog(true, ambientLight, 0.0001f);
+
+		SceneLayer mainSceneLayer = new SceneLayer(
+				"MAIN",
+				ambientLight,
+				fog
+		);
+
+		LightObject lightObject = new LightObject(
+				mainSceneLayer.getRegistry(),
+				"MyFirstLight",
+				0.25f,
+				0.5f,
+				1f,
+				Vec3f.X,
+				0.1f,
+				Vec3f.Z.neg(),
+				1000,
+				LightingType.SPOT
+		);
+
+		LightObject directionalObject = new LightObject(
+				mainSceneLayer.getRegistry(),
+				"MySecondLight",
+				0.25f,
+				0.5f,
+				1f,
+				new Vec3f(0.529f, 0.808f, 0.922f),
+				0.2f,
+				Vec3f.Z.neg().add(Vec3f.X),
+				1,
+				LightingType.DIRECTIONAL
+		);
+
+		SkyBoxObject skyBoxObject = new SkyBoxObject(
+				mainSceneLayer.getRegistry(),
+				"SKY_BOX",
+				1000,
+				SkyboxType.SPHERE,
+				"/textures/bw_gradient_skybox.png"
+		);
+
+		Transform cameraTransform = transformBuilder
+				.setPosition(new Vec3f(-10, 0, 0))
+				.setScale(Vec3f.ONE)
+				.setRotation(cameraRotation).build();
+
+		CameraObject cameraObject = new CameraObject(
+				mainSceneLayer.getRegistry(),
+				"Camera",
+				CameraProjectionType.PERSPECTIVE,
+				CameraObjectType.PRIMARY,
+				10000,
+				1.22f,
+				800,
+				1,
+				1000
+		);
+
+		ControllableObject controllableObject = new ControllableObject(
+				mainSceneLayer.getRegistry(),
+				"Camera controller",
+				true,
+				true,
+				0.01f,
+				1);
+		TransformObject cameraTransformObject = new TransformObject(
+				mainSceneLayer.getRegistry(),
+				"CameraTransform",
+				cameraTransform.getPosition(),
+				cameraTransform.getRotation(),
+				cameraTransform.getScale());
+
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
+
+		mainSceneLayer.getGcsSystems().add((GcsSystem) new TimerSystem());
+		mainSceneLayer.getGcsSystems().add((GcsSystem) new ScriptingSystem());
+
+		TimerObject timerObject = new TimerObject(
+				mainSceneLayer.getRegistry(),
+				"Timer",
+				true,
+				"Repeating function name",
+				true,
+				0,
+				false,
+				200
+
+		);
+
+		TimerObject setTimerObject = new TimerObject(
+				mainSceneLayer.getRegistry(),
+				"Timer",
+				false,
+				"Single set function name",
+				false,
+				500,
+				false,
+				300
+
+		);
+
+		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+
+		ScriptObject scriptObject = new ScriptObject(
+				mainSceneLayer.getRegistry(),
+				"ScriptObject",
+				"print(\"Hello, World!\")"
+		);
+
+		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
+		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
+		wip.setLockCursor(true).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
+
+		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
+		sceneLayers.add(mainSceneLayer);
+
+		GameLoop gameLoop = new GameLoop(
+				sceneLayers,
+				wip.build()
+		);
+
+		gameLoop.start();
+
+
 	}
 
 	public void gui() {
@@ -256,97 +396,126 @@ public class Examples {
 
 		guiCameraObject.getUpdater().setParent(guiCameraTransformObject).sendUpdate();
 
+		UUID selectedMaterial = createMaterial(guiSceneLayer, "material1", "/textures/black.png", "/normalMaps/waterNormalMap.jpg");
+
 		Transform guiSceneTransform = transformBuilder.reset()
-				.setPosition(new Vec3f(0, 4.4f, -2.5f))
-				.setScale(new Vec3f(200, 200, 200))
+				.setPosition(new Vec3f(1000, 1000, -100))
+				//.setScale(new Vec3f(200, 200, 200))
 				.build();
 
 		TransformObject guiSceneTransformObject = new TransformObject(
 				guiSceneLayer.getRegistry(),
 				"TransformObject",
 				guiSceneTransform.getPosition(),
-				guiSceneTransform.getRotation(),
+				QuaternionF.RotationZ(Math.PI),
 				guiSceneTransform.getScale());
-
-		UUID selectedMaterial = createMaterial(guiSceneLayer, "material1", "/textures/black.png", "/normalMaps/waterNormalMap.jpg");
 
 		ListObject listObject = new ListObject(
 				guiSceneLayer.getRegistry(),
 				"ListObject",
-				1.1f
+				0,
+				-100,
+				0,
+				205
 		);
 
 		listObject.getUpdater().setParent(guiSceneTransformObject).sendUpdate();
 
-		for (int i = 0; i < 6; i++) {
+		for (int j = 0; j < 2; j++) {
 
-			Transform build = transformBuilder.reset()
+			Transform listTransform = transformBuilder.reset()
 					.build();
 
-			TransformObject newTransformObject = new TransformObject(
+			TransformObject listTransformObject = new TransformObject(
 					guiSceneLayer.getRegistry(),
-					"TransformObject" + i,
-					build.getPosition(),
-					QuaternionF.RotationZ(Math.PI),
-					build.getScale());
+					"ListTransformObject",
+					listTransform.getPosition(),
+					listTransform.getRotation(),
+					listTransform.getScale());
 
-			GeometryObject newGeometryObject = new GeometryObject(
+			ListObject subListObject = new ListObject(
 					guiSceneLayer.getRegistry(),
-					"Geometry" + i,
-					Matrix4f.Identity,
-					basicMaterial,
-					"DEFAULT_SQUARE"
+					"SubListObject",
+					0,
+					-100,
+					0,
+					205
 			);
 
-			SelectableObject selectableObject = new SelectableObject(
-					guiSceneLayer.getRegistry(),
-					"Selectable " + i,
-					false,
-					selectedMaterial,
-					basicMaterial
-			);
+			subListObject.getUpdater().setParent(listTransformObject).sendUpdate();
+			listTransformObject.getUpdater().setParent(listObject).sendUpdate();
 
-			PickableObject pickableObject = new PickableObject(
-					guiSceneLayer.getRegistry(),
-					"Pickable " + i,
-					true
-			);
+			for (int i = 0; i < 3; i++) {
 
-			ButtonObject buttonObject = new ButtonObject(
-					guiSceneLayer.getRegistry(),
-					"buttonObj " + i,
-					true,
-					"Button Pressed " + i
-			);
+				Transform build = transformBuilder.reset()
+						.build();
 
-			Transform textTransform = transformBuilder.reset()
-					.setPosition(new Vec3f(1, 0.5f, 0.8f))
-					.build();
+				TransformObject newTransformObject = new TransformObject(
+						guiSceneLayer.getRegistry(),
+						"TransformObject" + i + j,
+						build.getPosition(),
+						QuaternionF.Identity,
+						build.getScale());
 
-			TransformObject textTransformObject = new TransformObject(
-					guiSceneLayer.getRegistry(),
-					"TransformObject" + i,
-					textTransform.getPosition(),
-					QuaternionF.RotationZ(Math.PI),
-					textTransform.getScale());
+				GeometryObject newGeometryObject = new GeometryObject(
+						guiSceneLayer.getRegistry(),
+						"Geometry" + i + j,
+						Matrix4f.Scale(new Vec3f(200, 200, 200)),
+						basicMaterial,
+						"DEFAULT_SQUARE"
+				);
 
-			TextObject guiTextObject = new TextObject(
-					guiSceneLayer.getRegistry(),
-					"ButtonText" + i,
-					FontAlignment.CENTER,
-					"montserrat_light",
-					0.1f,
-					"Button " + i
-			);
+				SelectableObject selectableObject = new SelectableObject(
+						guiSceneLayer.getRegistry(),
+						"Selectable " + i + j,
+						false,
+						selectedMaterial,
+						basicMaterial
+				);
 
-			textTransformObject.getUpdater().setParent(newTransformObject).sendUpdate();
-			guiTextObject.getUpdater().setParent(textTransformObject).sendUpdate();
-			newGeometryObject.getUpdater().setParent(newTransformObject).sendUpdate();
-			newTransformObject.getUpdater().setParent(listObject).sendUpdate();
+				PickableObject pickableObject = new PickableObject(
+						guiSceneLayer.getRegistry(),
+						"Pickable " + i + j,
+						true
+				);
 
-			pickableObject.getUpdater().setParent(newGeometryObject).sendUpdate();
-			selectableObject.getUpdater().setParent(newGeometryObject).sendUpdate();
-			buttonObject.getUpdater().setParent(newGeometryObject).sendUpdate();
+				ButtonObject buttonObject = new ButtonObject(
+						guiSceneLayer.getRegistry(),
+						"buttonObj " + i + j,
+						true,
+						"Button Pressed " + i + j
+				);
+
+				Transform textTransform = transformBuilder.reset()
+						.setPosition(new Vec3f(1, 0.5f, 0.8f))
+						.build();
+
+				TransformObject textTransformObject = new TransformObject(
+						guiSceneLayer.getRegistry(),
+						"TransformObject" + i + j,
+						textTransform.getPosition(),
+						QuaternionF.RotationZ(Math.PI),
+						textTransform.getScale());
+
+				TextObject guiTextObject = new TextObject(
+						guiSceneLayer.getRegistry(),
+						"ButtonText" + i + j,
+						FontAlignment.CENTER,
+						"montserrat_light",
+						20,
+						"Button " + i + j
+				);
+
+				textTransformObject.getUpdater().setParent(newTransformObject).sendUpdate();
+				guiTextObject.getUpdater().setParent(textTransformObject).sendUpdate();
+				newGeometryObject.getUpdater().setParent(newTransformObject).sendUpdate();
+				newTransformObject.getUpdater().setParent(subListObject).sendUpdate();
+
+				pickableObject.getUpdater().setParent(newGeometryObject).sendUpdate();
+				selectableObject.getUpdater().setParent(newGeometryObject).sendUpdate();
+				buttonObject.getUpdater().setParent(newGeometryObject).sendUpdate();
+
+			}
 
 		}
 
@@ -1776,19 +1945,6 @@ public class Examples {
 				fog
 		);
 
-		LightObject lightObject = new LightObject(
-				mainSceneLayer.getRegistry(),
-				"MyFirstLight",
-				0.25f,
-				0.5f,
-				1f,
-				Vec3f.X,
-				0.1f,
-				Vec3f.Z.neg(),
-				1000,
-				LightingType.SPOT
-		);
-
 		LightObject directionalObject = new LightObject(
 				mainSceneLayer.getRegistry(),
 				"MySecondLight",
@@ -1797,8 +1953,8 @@ public class Examples {
 				1f,
 				new Vec3f(0.529f, 0.808f, 0.922f),
 				0.2f,
-				Vec3f.Z.neg().add(Vec3f.X),
-				1,
+				Vec3f.Z.neg(),
+				2,
 				LightingType.DIRECTIONAL
 		);
 
@@ -1843,7 +1999,6 @@ public class Examples {
 
 		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 
-		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 
 		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
@@ -1854,7 +2009,9 @@ public class Examples {
 
 				for (int k = 0; k < 60; k++) {
 
-					Transform build = transformBuilder.reset().setPosition(new Vec3f(i * 4, j * 4, k * 4)).build();
+					Transform build = transformBuilder.reset()
+							.setPosition(new Vec3f(i * 4, j * 4, k * 4))
+							.setRotation(QuaternionF.RotationX(Math.PI/4)).build();
 
 					TransformObject newTransformObject = new TransformObject(
 							mainSceneLayer.getRegistry(),
@@ -1877,14 +2034,13 @@ public class Examples {
 			}
 		}
 
-		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
 		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setDebug(true);
-		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
-		wip.setLockCursor(true).setWindowWidth(800).setWindowHeight(600).setDebug(true);
+		wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
+		//wip.setLockCursor(true).setWindowWidth(800).setWindowHeight(600).setDebug(true);
 
 
 		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
