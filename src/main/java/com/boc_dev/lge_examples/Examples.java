@@ -50,7 +50,7 @@ public class Examples {
 		Examples examples = new Examples();
 		//examples.orthographic();
 		//examples.timerExample();
-		//examples.scriptExample();
+		examples.scriptExample();
 		//examples.boidsExample();
 		//examples.meshTypeConversionExample();
 		//examples.instancedRenderingExample();
@@ -162,7 +162,14 @@ public class Examples {
 		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
 
 		mainSceneLayer.getGcsSystems().add((GcsSystem) new TimerSystem());
-		mainSceneLayer.getGcsSystems().add((GcsSystem) new ScriptingSystem());
+		if (System.getenv("LUA_SCRIPTS_FOLDER") == null) {
+			System.err.println("Lua scripts folder needs to be set for this example to work.\n" +
+					"Please either set and environment variable called \"LUA_SCRIPTS_FOLDER\", or\n" +
+					"change the input to ScriptingSystem (underneath this print statement).");
+			System.err.println("Look underneath line: " + Thread.currentThread().getStackTrace()[1].getLineNumber());
+			return;
+		}
+		mainSceneLayer.getGcsSystems().add((GcsSystem) new ScriptingSystem(System.getenv("LUA_SCRIPTS_FOLDER")));
 
 		TimerObject timerObject = new TimerObject(
 				mainSceneLayer.getRegistry(),
@@ -192,32 +199,13 @@ public class Examples {
 		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 
-		String code = "";
-		try {
-			BufferedReader reader = new BufferedReader(new FileReader("example_lua_script.lua"));
-			StringWriter w = new StringWriter();
+		String script_file = "example_lua_script.lua";
 
-			try {
-				String line = reader.readLine();
-				while (null != line) {
-					w.append(line).append("\n");
-					line = reader.readLine();
-				}
-
-				code = w.toString();
-			} finally {
-				reader.close();
-				w.close();
-			}
-
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
 
 		ScriptObject scriptObject = new ScriptObject(
 				mainSceneLayer.getRegistry(),
 				"ScriptObject",
-				code
+				script_file
 		);
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
