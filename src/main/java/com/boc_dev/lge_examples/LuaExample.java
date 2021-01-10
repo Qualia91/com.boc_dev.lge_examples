@@ -9,8 +9,10 @@ import java.io.File;
 public class LuaExample {
 
 	public static void main(String[] args) {
-		if (args[0] != null) {
+		if (args.length > 0 && args[0] != null) {
 			new LuaExample().runScenario(args[0]);
+		} else {
+			System.out.println("No lua front end file found, stopping");
 		}
 	}
 
@@ -18,6 +20,7 @@ public class LuaExample {
 		File file = new File(example);
 		if (file.exists() && file.isFile()) {
 			Globals globals = JsePlatform.standardGlobals();
+			globals.load("package.path = '" + file.getParentFile().getPath().replace("\\", "/") + "/?.lua;'").call();
 			LuaValue chunk = globals.loadfile(file.getAbsolutePath());
 			chunk.call();
 		} else {
