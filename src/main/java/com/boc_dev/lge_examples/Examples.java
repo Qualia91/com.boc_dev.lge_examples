@@ -31,9 +31,6 @@ import com.boc_dev.maths.objects.vector.Vec2i;
 import com.boc_dev.maths.objects.vector.Vec3d;
 import com.boc_dev.maths.objects.vector.Vec3f;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.UUID;
@@ -50,7 +47,7 @@ public class Examples {
 		Examples examples = new Examples();
 		//examples.orthographic();
 		//examples.timerExample();
-		examples.scriptExample();
+		//examples.scriptExample();
 		//examples.boidsExample();
 		//examples.meshTypeConversionExample();
 		//examples.instancedRenderingExample();
@@ -71,7 +68,7 @@ public class Examples {
 		//examples.rigidBodyForcesExample();
 		//examples.rigidBodyGravitationalPullExample();
 		//examples.marchingCubesExample();
-		//examples.gui();
+		examples.gui();
 
 		// todo
 		//examples.renderingToFBOs();
@@ -169,6 +166,7 @@ public class Examples {
 			System.err.println("Look underneath line: " + Thread.currentThread().getStackTrace()[1].getLineNumber());
 			return;
 		}
+
 		mainSceneLayer.getGcsSystems().add((GcsSystem) new ScriptingSystem(System.getenv("LUA_SCRIPTS_FOLDER")));
 
 		TimerObject timerObject = new TimerObject(
@@ -199,7 +197,7 @@ public class Examples {
 		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 
-		String script_file = "example_lua_script.lua";
+		String script_file = "/example_lua_script.lua";
 
 
 		ScriptObject scriptObject = new ScriptObject(
@@ -228,148 +226,149 @@ public class Examples {
 	public void gui() {
 
 		TransformBuilder transformBuilder = new TransformBuilder();
-		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
-		Fog fog = new Fog(true, ambientLight, 0.0001f);
+//		Vec3f ambientLight = new Vec3f(0.1f, 0.1f, 0.1f);
+//		Fog fog = new Fog(true, ambientLight, 0.0001f);
+//
+//		SceneLayer mainSceneLayer = new SceneLayer(
+//				"MAIN",
+//				ambientLight,
+//				fog
+//		);
+//
+//		LightObject lightObject = new LightObject(
+//				mainSceneLayer.getRegistry(),
+//				"MyFirstLight",
+//				0.25f,
+//				0.5f,
+//				1f,
+//				Vec3f.X,
+//				0.1f,
+//				Vec3f.Z.neg(),
+//				1000,
+//				LightingType.SPOT
+//		);
+//
+//		LightObject directionalObject = new LightObject(
+//				mainSceneLayer.getRegistry(),
+//				"MySecondLight",
+//				0.25f,
+//				0.5f,
+//				1f,
+//				new Vec3f(0.529f, 0.808f, 0.922f),
+//				0.2f,
+//				Vec3f.Z.neg().add(Vec3f.X),
+//				1,
+//				LightingType.DIRECTIONAL
+//		);
+//
+//		SkyBoxObject skyBoxObject = new SkyBoxObject(
+//				mainSceneLayer.getRegistry(),
+//				"SKY_BOX",
+//				1000,
+//				SkyboxType.SPHERE,
+//				"/textures/bw_gradient_skybox.png"
+//		);
+//
+//		Transform cameraTransform = transformBuilder
+//				.setPosition(new Vec3f(-10, 0, 0))
+//				.setScale(Vec3f.ONE)
+//				.setRotation(cameraRotation).build();
+//
+//		CameraObject cameraObject = new CameraObject(
+//				mainSceneLayer.getRegistry(),
+//				"Camera",
+//				CameraProjectionType.PERSPECTIVE,
+//				CameraObjectType.PRIMARY,
+//				10000,
+//				1.22f,
+//				800,
+//				1,
+//				1000
+//		);
+//
+//		ControllableObject controllableObject = new ControllableObject(
+//				mainSceneLayer.getRegistry(),
+//				"Camera controller",
+//				false,
+//				true,
+//				0.01f,
+//				1);
+//		TransformObject cameraTransformObject = new TransformObject(
+//				mainSceneLayer.getRegistry(),
+//				"CameraTransform",
+//				cameraTransform.getPosition(),
+//				cameraTransform.getRotation(),
+//				cameraTransform.getScale());
+//
+//		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+//
+//		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+//		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+//
+//		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
+//
+//		mainSceneLayer.getGcsSystems().add((GcsSystem) new BoidSystem());
+//
+//		Random random = new Random();
+//
+//		for (int i = 0; i < 5; i++) {
+//
+//			for (int j = 0; j < 5; j++) {
+//
+//				for (int k = 0; k < 5; k++) {
+//
+//
+//					Transform build = transformBuilder.reset().setPosition(new Vec3f(i * 4, j * 4, k * 4)).build();
+//
+//
+//					TransformObject newTransformObject = new TransformObject(
+//							mainSceneLayer.getRegistry(),
+//							"TransformObject" + i,
+//							build.getPosition(),
+//							build.getRotation(),
+//							build.getScale());
+//
+//					GeometryObject newGeometryObject = new GeometryObject(
+//							mainSceneLayer.getRegistry(),
+//							"Geometry" + i,
+//							Matrix4f.Identity,
+//							basicMaterial,
+//							"DEFAULT_SPHERE"
+//					);
+//
+//					BoidObject boidObject = new BoidObject(
+//							mainSceneLayer.getRegistry(),
+//							"Boid" + i,
+//							0.001f,
+//							0.1f,
+//							new Vec3f(random.nextInt(10) - 5, random.nextInt(10) - 5, random.nextInt(10) - 5),
+//							400,
+//							10,
+//							10,
+//							0.001f,
+//							2,
+//							50,
+//							Vec3f.ZERO,
+//							0.001f
+//					);
+//					newGeometryObject.getUpdater().setParent(newTransformObject).sendUpdate();
+//					boidObject.getUpdater().setParent(newTransformObject).sendUpdate();
+//
+//				}
+//			}
+//		}
+//
+//		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+//		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+//		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
+//
+		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
+		//sceneLayers.add(mainSceneLayer);
 
-		SceneLayer mainSceneLayer = new SceneLayer(
-				"MAIN",
-				ambientLight,
-				fog
-		);
-
-		LightObject lightObject = new LightObject(
-				mainSceneLayer.getRegistry(),
-				"MyFirstLight",
-				0.25f,
-				0.5f,
-				1f,
-				Vec3f.X,
-				0.1f,
-				Vec3f.Z.neg(),
-				1000,
-				LightingType.SPOT
-		);
-
-		LightObject directionalObject = new LightObject(
-				mainSceneLayer.getRegistry(),
-				"MySecondLight",
-				0.25f,
-				0.5f,
-				1f,
-				new Vec3f(0.529f, 0.808f, 0.922f),
-				0.2f,
-				Vec3f.Z.neg().add(Vec3f.X),
-				1,
-				LightingType.DIRECTIONAL
-		);
-
-		SkyBoxObject skyBoxObject = new SkyBoxObject(
-				mainSceneLayer.getRegistry(),
-				"SKY_BOX",
-				1000,
-				SkyboxType.SPHERE,
-				"/textures/bw_gradient_skybox.png"
-		);
-
-		Transform cameraTransform = transformBuilder
-				.setPosition(new Vec3f(-10, 0, 0))
-				.setScale(Vec3f.ONE)
-				.setRotation(cameraRotation).build();
-
-		CameraObject cameraObject = new CameraObject(
-				mainSceneLayer.getRegistry(),
-				"Camera",
-				CameraProjectionType.PERSPECTIVE,
-				CameraObjectType.PRIMARY,
-				10000,
-				1.22f,
-				800,
-				1,
-				1000
-		);
-
-		ControllableObject controllableObject = new ControllableObject(
-				mainSceneLayer.getRegistry(),
-				"Camera controller",
-				false,
-				true,
-				0.01f,
-				1);
-		TransformObject cameraTransformObject = new TransformObject(
-				mainSceneLayer.getRegistry(),
-				"CameraTransform",
-				cameraTransform.getPosition(),
-				cameraTransform.getRotation(),
-				cameraTransform.getScale());
-
-		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
-
-		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
-		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
-
-		UUID basicMaterial = createBasicMaterial(mainSceneLayer);
-
-		mainSceneLayer.getGcsSystems().add((GcsSystem) new BoidSystem());
-
-		Random random = new Random();
-
-		for (int i = 0; i < 5; i++) {
-
-			for (int j = 0; j < 5; j++) {
-
-				for (int k = 0; k < 5; k++) {
-
-
-					Transform build = transformBuilder.reset().setPosition(new Vec3f(i * 4, j * 4, k * 4)).build();
-
-
-					TransformObject newTransformObject = new TransformObject(
-							mainSceneLayer.getRegistry(),
-							"TransformObject" + i,
-							build.getPosition(),
-							build.getRotation(),
-							build.getScale());
-
-					GeometryObject newGeometryObject = new GeometryObject(
-							mainSceneLayer.getRegistry(),
-							"Geometry" + i,
-							Matrix4f.Identity,
-							basicMaterial,
-							"DEFAULT_SPHERE"
-					);
-
-					BoidObject boidObject = new BoidObject(
-							mainSceneLayer.getRegistry(),
-							"Boid" + i,
-							0.001f,
-							0.1f,
-							new Vec3f(random.nextInt(10) - 5, random.nextInt(10) - 5, random.nextInt(10) - 5),
-							400,
-							10,
-							10,
-							0.001f,
-							2,
-							50,
-							Vec3f.ZERO,
-							0.001f
-					);
-					newGeometryObject.getUpdater().setParent(newTransformObject).sendUpdate();
-					boidObject.getUpdater().setParent(newTransformObject).sendUpdate();
-
-				}
-			}
-		}
-
-		lightObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
-		cameraObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
-		controllableObject.getUpdater().setParent(cameraTransformObject).sendUpdate();
 
 		WindowInitialisationParametersBuilder wip = new WindowInitialisationParametersBuilder();
 		//wip.setLockCursor(true).setWindowWidth(1920).setWindowHeight(1080).setFullScreen(true);
 		wip.setLockCursor(false).setWindowWidth(1000).setWindowHeight(800).setDebug(true);
-
-		ArrayList<SceneLayer> sceneLayers = new ArrayList<>();
-		sceneLayers.add(mainSceneLayer);
 
 
 
@@ -434,6 +433,8 @@ public class Examples {
 
 		listObject.getUpdater().setParent(guiSceneTransformObject).sendUpdate();
 
+		UUID basicMaterial = createBasicMaterial(guiSceneLayer);
+
 		for (int j = 0; j < 2; j++) {
 
 			Transform listTransform = transformBuilder.reset()
@@ -457,6 +458,7 @@ public class Examples {
 
 			subListObject.getUpdater().setParent(listTransformObject).sendUpdate();
 			listTransformObject.getUpdater().setParent(listObject).sendUpdate();
+
 
 			for (int i = 0; i < 3; i++) {
 
